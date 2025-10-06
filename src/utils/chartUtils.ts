@@ -18,7 +18,7 @@ export const parseCSVData = (csvData: string): EnvironmentalData[] => {
       const score = parseFloat(values[5] || '0')
 
       // Validate parsed values
-      if (isNaN(id) || !timeStr || isNaN(value) || isNaN(score)) return null
+      //   if (isNaN(id) || !timeStr || isNaN(value) || isNaN(score)) return null
 
       return {
         id,

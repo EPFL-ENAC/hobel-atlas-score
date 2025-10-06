@@ -36,7 +36,7 @@ export const createExpandedLineChart = (
   // Create line generator
   const line = d3
     .line<EnvironmentalData>()
-    .defined((d) => !isNaN(d[plotProperty]) && d[plotProperty] > 0)
+    .defined((d) => !isNaN(d[plotProperty]))
     .x((d) => x(d.time))
     .y((d) => y(d[plotProperty]))
 
