@@ -125,25 +125,79 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   // Clear previous chart
   chartContainer.value.innerHTML = ''
 
-  // Group data by field
-  const groupedData = d3.group(data, (d) => d.field)
+  // Group data by category first, then by field
+  const groupedByCategory = d3.group(data, (d) => d.category)
 
-  // Get all unique fields
-  const fields = Array.from(groupedData.keys())
+  // Define custom order for categories
+  const categoryOrder = ['Luminous comfort', 'Air quality', 'Acoustic comfort', 'Thermal comfort']
+
+  // Sort categories according to custom order
+  const categories = Array.from(groupedByCategory.keys()).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a)
+    const indexB = categoryOrder.indexOf(b)
+
+    // If both categories are in our custom order, sort according to that order
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB
+    }
+
+    // If only one category is in our custom order, it comes first
+    if (indexA !== -1) {
+      return -1
+    }
+    if (indexB !== -1) {
+      return 1
+    }
+
+    // If neither category is in our custom order, maintain natural order
+    return 0
+  })
+
+  // Function to get color scheme for a category
+  const getCategoryColors = (category: string, bands: number): string[] => {
+    let colorScheme: readonly string[] | undefined
+
+    switch (category) {
+      case 'Air quality':
+        colorScheme = d3.schemeGreens[bands + 1]
+        break
+      case 'Acoustic comfort':
+        // Using blues for acoustic comfort (associated with calmness and tranquility)
+        colorScheme = d3.schemeBlues[bands + 1]
+        break
+      case 'Thermal comfort':
+        // Using reds/oranges for thermal comfort (associated with heat/warmth)
+        colorScheme = d3.schemeReds[bands + 1]
+        break
+      case 'Luminous comfort':
+        // Using yellows for luminous comfort (associated with light/brightness)
+        colorScheme = d3.schemeYlOrBr[bands + 1]
+        break
+      default:
+        colorScheme = d3.schemeGreys[bands + 1]
+    }
+
+    return colorScheme?.slice(1) || ['#deebf7', '#9ecae1', '#3182bd']
+  }
+
+  // Calculate total number of fields across all categories
+  let totalFields = 0
+  categories.forEach((category) => {
+    const categoryData = groupedByCategory.get(category) || []
+    const fieldsInCategory = Array.from(new Set(categoryData.map((d) => d.field)))
+    totalFields += fieldsInCategory.length
+  })
 
   // Set dimensions and margins
   const marginTop = 30
-  const marginRight = 10
   const marginBottom = 0
-  const marginLeft = 10
+  const marginLeft = 30
+  const marginRight = 50
   const width = 928
   const size = props.bandHeight // height of each band
-  const height = fields.length * size + marginTop + marginBottom
+  const height = totalFields * size + categories.length * 30 + marginTop + marginBottom // Extra space for category labels
   const padding = 1
   const bands = props.numBands // number of bands for horizon effect
-
-  // Color scheme for bands
-  const colors = d3.schemeBlues[bands + 1]?.slice(1) || ['#deebf7', '#9ecae1', '#3182bd']
 
   // Create SVG
   const svg = d3
@@ -152,100 +206,142 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', [0, 0, width, height])
-    .attr('style', 'max-width: 100%; height: auto; font: 10px sans-serif;')
+    .attr(
+      'style',
+      'max-width: 100%; height: auto; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
+    )
 
-  // Process each field
-  fields.forEach((field, i) => {
-    const fieldData = groupedData.get(field) || []
+  let yOffset = marginTop
+  let globalIndex = 0
 
-    // Get the property to use for plotting
-    const plotProperty = props.dataProperty
+  // Process each category
+  categories.forEach((category, catIndex) => {
+    const categoryData = groupedByCategory.get(category) || []
+    const groupedByField = d3.group(categoryData, (d) => d.field)
+    const fields = Array.from(groupedByField.keys())
 
-    // Create the horizontal (temporal) scale
-    const x = d3
-      .scaleUtc()
-      .domain(d3.extent(fieldData, (d) => d.time) as [Date, Date])
-      .range([0, width])
+    // Calculate the vertical center of this category's fields
+    const fieldsInCategory = fields.length
+    const categoryHeight = fieldsInCategory * size
+    const categoryCenter = yOffset + categoryHeight / 2
 
-    // Create the vertical scale
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(fieldData, (d) => d[plotProperty]) as number])
-      .range([size, size - bands * (size - padding)])
+    // Get color scheme for this category
+    const colors = getCategoryColors(category, bands)
 
-    // Create area generator
-    const area = d3
-      .area<EnvironmentalData>()
-      .defined((d) => !isNaN(d[plotProperty]))
-      .x((d) => x(d.time))
-      .y0(size)
-      .y1((d) => y(d[plotProperty]))
-
-    // Unique identifier for clip rect and reusable paths
-    const uid = `O-${Math.random().toString(16).slice(2)}`
-
-    // Create a G element for each field
-    const g = svg.append('g').attr('transform', `translate(0,${i * size + marginTop})`)
-
-    // Add a rectangular clipPath and the reference area
-    const defs = g.append('defs')
-
-    defs
-      .append('clipPath')
-      .attr('id', `${uid}-clip-${i}`)
-      .append('rect')
-      .attr('y', padding)
-      .attr('width', width)
-      .attr('height', size - padding)
-
-    defs.append('path').attr('id', `${uid}-path-${i}`).attr('d', area(fieldData))
-
-    // Create a group for each field, in which the reference area will be replicated
-    // (with the SVG:use element) for each band, and translated
-    const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${i})`)
-
-    // Add click handler to the group
-    g.style('cursor', 'pointer').on('click', () => {
-      // Prepare data for detailed chart (using the current plot property)
-      const chartData = fieldData.map((d) => ({ time: d.time, value: d[plotProperty] }))
-      openDetailedChart(field, chartData)
-    })
-
-    bandGroup
-      .selectAll('use')
-      .data(new Array(bands).fill(i))
-      .enter()
-      .append('use')
-      .attr('xlink:href', `#${uid}-path-${i}`)
-      .attr('fill', (_, j) => colors[j] ?? '#ccc')
-      .attr('transform', (_, j) => `translate(0,${j * size})`)
-
-    // Add the labels
-    g.append('text')
-      .attr('x', 4)
-      .attr('y', (size + padding) / 2)
+    // Add category header on the left side, rotated 90 degrees
+    svg
+      .append('text')
+      .attr('x', 10)
+      .attr('y', categoryCenter)
       .attr('dy', '0.35em')
-      .text(field)
+      .attr('font-weight', 'bold')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `rotate(-90, 10, ${categoryCenter})`)
+      .attr('stroke', 'white')
+      .attr('stroke-width', 0.5)
+      .attr('stroke-opacity', 0.7)
+      .attr('paint-order', 'stroke')
+      .text(category)
 
-    // Add the horizontal axis (only for the first field)
-    if (i === 0) {
-      svg
-        .append('g')
-        .attr('transform', `translate(0,${marginTop})`)
-        .call(
+    // Process each field within the category
+    fields.forEach((field, fieldIndex) => {
+      const fieldData = groupedByField.get(field) || []
+
+      // Get the property to use for plotting
+      const plotProperty = props.dataProperty
+
+      // Create the horizontal (temporal) scale
+      const x = d3
+        .scaleTime()
+        .domain(d3.extent(fieldData, (d) => d.time) as [Date, Date])
+        .range([0, width - marginRight])
+
+      // Create the vertical scale
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(fieldData, (d) => d[plotProperty]) as number])
+        .range([size, size - bands * (size - padding)])
+
+      // Create area generator
+      const area = d3
+        .area<EnvironmentalData>()
+        .defined((d) => !isNaN(d[plotProperty]))
+        .x((d) => x(d.time))
+        .y0(size)
+        .y1((d) => y(d[plotProperty]))
+
+      // Unique identifier for clip rect and reusable paths
+      const uid = `O-${Math.random().toString(16).slice(2)}`
+
+      // Create a G element for each field, accounting for left margin
+      const g = svg.append('g').attr('transform', `translate(${marginLeft},${yOffset})`)
+
+      // Add a rectangular clipPath and the reference area
+      const defs = g.append('defs')
+
+      defs
+        .append('clipPath')
+        .attr('id', `${uid}-clip-${globalIndex}`)
+        .append('rect')
+        .attr('y', padding)
+        .attr('width', width - marginLeft)
+        .attr('height', size - padding)
+
+      defs.append('path').attr('id', `${uid}-path-${globalIndex}`).attr('d', area(fieldData))
+
+      // Create a group for each field, in which the reference area will be replicated
+      // (with the SVG:use element) for each band, and translated
+      const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${globalIndex})`)
+
+      // Add click handler to the group
+      g.style('cursor', 'pointer').on('click', () => {
+        // Prepare data for detailed chart (using the current plot property)
+        const chartData = fieldData.map((d) => ({ time: d.time, value: d[plotProperty] }))
+        openDetailedChart(`${category} - ${field}`, chartData)
+      })
+
+      bandGroup
+        .selectAll('use')
+        .data(new Array(bands).fill(globalIndex))
+        .enter()
+        .append('use')
+        .attr('xlink:href', `#${uid}-path-${globalIndex}`)
+        .attr('fill', (_, j) => colors[j] ?? '#ccc')
+        .attr('transform', (_, j) => `translate(0,${j * size})`)
+
+      // Add the labels with a subtle stroke for better readability
+      g.append('text')
+        .attr('x', 10)
+        .attr('y', (size + padding) / 2)
+        .attr('dy', '0.35em')
+        .attr('font-size', 12)
+        .attr(
+          'font-family',
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+        )
+        .attr('font-weight', 'bold')
+        .attr('stroke', 'white')
+        .attr('stroke-width', 3)
+        .attr('stroke-opacity', 0.8)
+        .attr('paint-order', 'stroke')
+        .text(field.replace(/_/g, ' ').toUpperCase())
+
+      // Add the horizontal axis (only for the first field of the first category)
+      if (catIndex === 0 && fieldIndex === 0) {
+        svg.append('g').attr('transform', `translate(${marginLeft},${marginTop})`).call(
           d3
             .axisTop(x)
-            .ticks(width / 80)
-            .tickSizeOuter(0)
+
+            .ticks(d3.timeDay, '%d/%m')
         )
-        .call((g) =>
-          g
-            .selectAll('.tick')
-            .filter((d) => x(d as any) < marginLeft || x(d as any) >= width - marginRight)
-            .remove()
-        )
-        .call((g) => g.select('.domain').remove())
-    }
+      }
+
+      yOffset += size
+      globalIndex++
+    })
+
+    // Add more spacing between categories
+    yOffset += 30
   })
 }
 
