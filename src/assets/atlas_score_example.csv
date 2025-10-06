@@ -1,4 +1,4 @@
-,time,category,field,value,score
+id,time,category,field,value,score
 0,2025-03-15 00:00:00+00:00,Air quality,co2,3509.4166666666665,0.0
 1,2025-03-15 01:00:00+00:00,Air quality,co2,2744.25,0.0
 2,2025-03-15 02:00:00+00:00,Air quality,co2,1985.0833333333333,1.2430555555555642

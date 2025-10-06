@@ -192,7 +192,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   const marginTop = 30
   const marginBottom = 0
   const marginLeft = 30
-  const marginRight = 50
+  const marginRight = 15
   const width = 928
   const size = props.bandHeight // height of each band
   const height = totalFields * size + categories.length * 30 + marginTop + marginBottom // Extra space for category labels
@@ -210,6 +210,14 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       'style',
       'max-width: 100%; height: auto; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
     )
+
+  // Create a global time scale using the extent of the entire dataset
+  const globalTimeExtent = d3.extent(data, (d) => d.time) as [Date, Date]
+  const globalX = d3
+    .scaleTime()
+    .domain(globalTimeExtent)
+    .nice()
+    .range([0, width - marginLeft - marginRight])
 
   let yOffset = marginTop
   let globalIndex = 0
@@ -250,11 +258,8 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       // Get the property to use for plotting
       const plotProperty = props.dataProperty
 
-      // Create the horizontal (temporal) scale
-      const x = d3
-        .scaleTime()
-        .domain(d3.extent(fieldData, (d) => d.time) as [Date, Date])
-        .range([0, width - marginRight])
+      // Use the global time scale for all fields
+      const x = globalX
 
       // Create the vertical scale
       const y = d3
@@ -284,7 +289,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
         .attr('id', `${uid}-clip-${globalIndex}`)
         .append('rect')
         .attr('y', padding)
-        .attr('width', width - marginLeft)
+        .attr('width', width - marginLeft - marginRight)
         .attr('height', size - padding)
 
       defs.append('path').attr('id', `${uid}-path-${globalIndex}`).attr('d', area(fieldData))
@@ -328,12 +333,15 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
 
       // Add the horizontal axis (only for the first field of the first category)
       if (catIndex === 0 && fieldIndex === 0) {
-        svg.append('g').attr('transform', `translate(${marginLeft},${marginTop})`).call(
-          d3
-            .axisTop(x)
-
-            .ticks(d3.timeDay, '%d/%m')
-        )
+        svg
+          .append('g')
+          .attr('transform', `translate(${marginLeft},${marginTop})`)
+          .call(
+            d3
+              .axisTop(globalX)
+              .ticks(d3.timeDay.every(1))
+              .tickFormat(d3.timeFormat('%d/%m') as any)
+          )
       }
 
       yOffset += size
