@@ -1,12 +1,7 @@
 <template>
   <div class="horizon-plot-container">
-    <h2>Environmental Data Horizon Plot</h2>
-    <div class="controls">
-      <q-btn
-        @click="toggleDataProperty"
-        color="primary"
-        :label="'Plotting: ' + (dataProperty === 'value' ? 'Raw Value' : 'Score')"
-      />
+    <div class="plot-header">
+      <q-btn @click="downloadSVG" color="secondary" label="Download SVG" class="download-btn" />
     </div>
     <div ref="chartContainer" class="chart-container"></div>
 
@@ -18,16 +13,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
 import DetailedChart from './DetailedChart.vue'
+
+// Define props
+const props = defineProps<{
+  bandHeight: number
+  numBands: number
+  dataProperty: 'value' | 'score'
+}>()
 
 const chartContainer = ref<HTMLElement | null>(null)
 const selectedFieldData = ref<Array<{ time: Date; value: number }>>([])
 const selectedField = ref<string>('')
 const showDetailedChart = ref<boolean>(false)
-const dataProperty = ref<'value' | 'score'>('score')
 
 interface EnvironmentalData {
   id: number
@@ -38,11 +39,42 @@ interface EnvironmentalData {
   score: number
 }
 
-// Toggle between value and score properties
-const toggleDataProperty = () => {
-  dataProperty.value = dataProperty.value === 'value' ? 'score' : 'value'
-  const data = parseData()
-  createHorizonPlot(data)
+// Download the SVG as a file
+const downloadSVG = () => {
+  if (!chartContainer.value) return
+
+  // Get the SVG element
+  const svgElement = chartContainer.value.querySelector('svg')
+  if (!svgElement) return
+
+  // Serialize the SVG to a string
+  const serializer = new XMLSerializer()
+  let svgString = serializer.serializeToString(svgElement)
+
+  // Add namespaces if they're missing
+  if (!svgString.includes('xmlns')) {
+    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+  }
+  if (!svgString.includes('xmlns:xlink')) {
+    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+  }
+
+  // Create a blob from the SVG string
+  const blob = new Blob([svgString], { type: 'image/svg+xml' })
+
+  // Create a download link
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `horizon-plot-${props.dataProperty}.svg`
+
+  // Trigger the download
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Clean up the URL object
+  URL.revokeObjectURL(url)
 }
 
 // Parse CSV data
@@ -107,10 +139,10 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   const marginBottom = 0
   const marginLeft = 10
   const width = 928
-  const size = 60 // height of each band
+  const size = props.bandHeight // height of each band
   const height = fields.length * size + marginTop + marginBottom
   const padding = 1
-  const bands = 3 // number of bands for horizon effect
+  const bands = props.numBands // number of bands for horizon effect
 
   // Color scheme for bands
   const colors = d3.schemeBlues[bands + 1]?.slice(1) || ['#deebf7', '#9ecae1', '#3182bd']
@@ -129,7 +161,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     const fieldData = groupedData.get(field) || []
 
     // Get the property to use for plotting
-    const plotProperty = dataProperty.value
+    const plotProperty = props.dataProperty
 
     // Create the horizontal (temporal) scale
     const x = d3
@@ -219,6 +251,15 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   })
 }
 
+// Watch for prop changes and recreate the plot
+watch(
+  () => [props.bandHeight, props.numBands, props.dataProperty],
+  () => {
+    const data = parseData()
+    createHorizonPlot(data)
+  }
+)
+
 onMounted(() => {
   const data = parseData()
   createHorizonPlot(data)
@@ -233,26 +274,15 @@ onMounted(() => {
   padding: 20px;
 }
 
-.controls {
+.plot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
-.toggle-button {
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.toggle-button:hover {
-  background-color: #45a049;
+.download-btn {
+  margin-left: 10px;
 }
 
 .chart-container {

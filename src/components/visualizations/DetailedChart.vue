@@ -2,7 +2,10 @@
   <div class="detailed-chart-container">
     <div class="chart-header">
       <h2>{{ field }} - Detailed View</h2>
-      <button @click="closeChart" class="close-button">Close</button>
+      <div class="header-controls">
+        <button @click="downloadSVG" class="download-button">Download SVG</button>
+        <button @click="closeChart" class="close-button">Close</button>
+      </div>
     </div>
     <div ref="chartContainer" class="chart-container"></div>
   </div>
@@ -25,6 +28,41 @@ const chartContainer = ref<HTMLElement | null>(null)
 
 const closeChart = () => {
   emit('close')
+}
+
+// Download the SVG as a file
+const downloadSVG = () => {
+  if (!chartContainer.value) return
+
+  // Get the SVG element
+  const svgElement = chartContainer.value.querySelector('svg')
+  if (!svgElement) return
+
+  // Serialize the SVG to a string
+  const serializer = new XMLSerializer()
+  let svgString = serializer.serializeToString(svgElement)
+
+  // Add namespaces if they're missing
+  if (!svgString.includes('xmlns')) {
+    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+  }
+
+  // Create a blob from the SVG string
+  const blob = new Blob([svgString], { type: 'image/svg+xml' })
+
+  // Create a download link
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `detailed-chart-${props.field}.svg`
+
+  // Trigger the download
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Clean up the URL object
+  URL.revokeObjectURL(url)
 }
 
 // Create detailed line chart
@@ -186,6 +224,24 @@ watch(
 
 .close-button:hover {
   background-color: #d32f2f;
+}
+
+.download-button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.download-button:hover {
+  background-color: #0b7dda;
 }
 
 .chart-container {
