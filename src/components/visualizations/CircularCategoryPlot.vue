@@ -1,13 +1,15 @@
 <template>
   <div class="circular-plot-container">
+    <div class="controls">
+      <q-btn
+        @click="handleDownloadSVG"
+        outline
+        icon="download"
+        label="Download SVG"
+        class="download-btn"
+      />
+    </div>
     <div ref="chartContainer" class="chart-container"></div>
-    <q-btn
-      @click="handleDownloadSVG"
-      outline
-      icon="download"
-      label="Download SVG"
-      class="download-btn"
-    />
   </div>
 </template>
 
@@ -251,10 +253,16 @@ onMounted(() => {
 <style scoped>
 .circular-plot-container {
   width: 100%;
-  max-width: 500px;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: end;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .download-btn {

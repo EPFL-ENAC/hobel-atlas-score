@@ -92,7 +92,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 
     <!-- Visualization Components -->
     <div class="visualization-section">
-      <h4>Horizon Plot</h4>
+      <h5>Horizon Plot</h5>
       <HorizonPlot
         :band-height="bandHeight"
         :num-bands="numBands"
@@ -102,7 +102,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
     </div>
 
     <div class="visualization-section">
-      <h4>Category Overview</h4>
+      <h5>Category Overview</h5>
       <CircularCategoryPlot :data-property="dataProperty" :custom-data="csvData" />
     </div>
   </div>
