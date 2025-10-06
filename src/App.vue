@@ -2,11 +2,16 @@
 import { ref } from 'vue'
 import HorizonPlot from './components/visualizations/HorizonPlot.vue'
 import CircularCategoryPlot from './components/visualizations/CircularCategoryPlot.vue'
+import FileUpload from './components/FileUpload.vue'
+import type { EnvironmentalData } from './composables/useHorizonChart'
 
 // Reactive variables for controlling the plots
 const bandHeight = ref<number>(60)
 const numBands = ref<number>(3)
 const dataProperty = ref<'value' | 'score'>('score')
+
+// Data management
+const csvData = ref<EnvironmentalData[] | null>(null)
 
 // Functions to update the plot parameters
 const updateBandHeight = (value: number | null) => {
@@ -24,11 +29,24 @@ const updateNumBands = (value: number | null) => {
 const updateDataProperty = (value: 'value' | 'score') => {
   dataProperty.value = value
 }
+
+// File upload handlers
+const handleDataChanged = (data: EnvironmentalData[] | null) => {
+  csvData.value = data
+}
+
+const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
+  // We can use these values if needed for additional UI feedback
+}
 </script>
 
 <template>
   <div class="app-container">
     <h3>Atlas Score Visualization</h3>
+
+    <!-- File Upload Section -->
+    <FileUpload @data-changed="handleDataChanged" @file-status-changed="handleFileStatusChanged" />
+
     <div class="controls">
       <div class="control-group">
         <div class="control-item">
@@ -75,12 +93,17 @@ const updateDataProperty = (value: 'value' | 'score') => {
     <!-- Visualization Components -->
     <div class="visualization-section">
       <h4>Horizon Plot</h4>
-      <HorizonPlot :band-height="bandHeight" :num-bands="numBands" :data-property="dataProperty" />
+      <HorizonPlot
+        :band-height="bandHeight"
+        :num-bands="numBands"
+        :data-property="dataProperty"
+        :custom-data="csvData"
+      />
     </div>
 
     <div class="visualization-section">
       <h4>Category Overview</h4>
-      <CircularCategoryPlot :data-property="dataProperty" />
+      <CircularCategoryPlot :data-property="dataProperty" :custom-data="csvData" />
     </div>
   </div>
 </template>

@@ -23,6 +23,7 @@ const props = defineProps<{
   dataProperty: 'value' | 'score'
   radius?: number
   innerRadius?: number
+  customData?: EnvironmentalData[] | null
 }>()
 
 const chartContainer = ref<HTMLElement | null>(null)
@@ -63,7 +64,8 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
 const createCircularPlot = () => {
   if (!chartContainer.value) return
 
-  const data = parseCSVData(atlasScoreData)
+  // Use custom data if available, otherwise use default data
+  const data = props.customData || parseCSVData(atlasScoreData)
   const categoryData = calculateCategoryAverages(data)
 
   // Clear previous chart
@@ -235,7 +237,7 @@ const createCircularPlot = () => {
 
 // Watch for prop changes and recreate the plot
 watch(
-  () => [props.dataProperty, props.radius, props.innerRadius],
+  () => [props.dataProperty, props.radius, props.innerRadius, props.customData],
   () => {
     createCircularPlot()
   }

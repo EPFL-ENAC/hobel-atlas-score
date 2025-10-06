@@ -40,6 +40,7 @@ const props = defineProps<{
   bandHeight: number
   numBands: number
   dataProperty: 'value' | 'score'
+  customData?: EnvironmentalData[] | null
 }>()
 
 const chartContainer = ref<HTMLElement | null>(null)
@@ -60,7 +61,8 @@ const handleDownloadSVG = () => {
 }
 
 const createChart = () => {
-  let data = parseCSVData(atlasScoreData)
+  // Use custom data if available, otherwise use default data
+  let data = props.customData || parseCSVData(atlasScoreData)
 
   // Apply series filter if needed
   if (seriesFilter.value === 'first') {
@@ -224,7 +226,13 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
 
 // Watch for prop changes and recreate the plot
 watch(
-  () => [props.bandHeight, props.numBands, props.dataProperty, seriesFilter.value],
+  () => [
+    props.bandHeight,
+    props.numBands,
+    props.dataProperty,
+    props.customData,
+    seriesFilter.value
+  ],
   () => {
     createChart()
   }
