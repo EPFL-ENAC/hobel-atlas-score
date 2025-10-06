@@ -1,14 +1,12 @@
 <template>
   <div class="horizon-plot-container">
-    <div class="plot-header">
-      <q-btn @click="downloadSVG" color="secondary" label="Download SVG" class="download-btn" />
-    </div>
     <div ref="chartContainer" class="chart-container"></div>
 
     <!-- Detailed chart overlay -->
     <div v-if="showDetailedChart" class="overlay" @click="closeDetailedChart">
       <DetailedChart :data="selectedFieldData" :field="selectedField" @close="closeDetailedChart" />
     </div>
+    <q-btn @click="downloadSVG" outline icon="download" label="Download SVG" class="download-btn" />
   </div>
 </template>
 
