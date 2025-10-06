@@ -61,8 +61,8 @@ const updateDataProperty = (value: 'value' | 'score') => {
           <label>Bands: {{ numBands }}</label>
           <q-slider
             :model-value="numBands"
-            :min="1"
-            :max="10"
+            :min="2"
+            :max="6"
             :step="1"
             class="slider"
             @update:model-value="updateNumBands"
