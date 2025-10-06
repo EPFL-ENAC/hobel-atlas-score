@@ -1,13 +1,22 @@
 <template>
   <div class="horizon-plot-container">
+    <div class="controls-section">
+      <q-option-group
+        v-model="seriesFilter"
+        :options="seriesFilterOptions"
+        color="primary"
+        inline
+        class="series-filter"
+      />
+      <q-btn
+        @click="handleDownloadSVG"
+        outline
+        icon="download"
+        label="Download SVG"
+        class="download-btn"
+      />
+    </div>
     <div ref="chartContainer" class="chart-container"></div>
-    <q-btn
-      @click="handleDownloadSVG"
-      outline
-      icon="download"
-      label="Download SVG"
-      class="download-btn"
-    />
   </div>
 </template>
 
@@ -16,7 +25,12 @@ import { ref, onMounted, watch } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
 import { useHorizonChart } from '../../composables/useHorizonChart'
-import { parseCSVData, downloadSVG, sortCategoriesByOrder } from '../../utils/chartUtils'
+import {
+  parseCSVData,
+  downloadSVG,
+  sortCategoriesByOrder,
+  filterFirstSeriesOnly
+} from '../../utils/chartUtils'
 import { createExpandedLineChart, type ChartDimensions } from '../../utils/expandedChart'
 import { createHorizonBand } from '../../utils/horizonBand'
 import type { EnvironmentalData } from '../../composables/useHorizonChart'
@@ -32,6 +46,13 @@ const chartContainer = ref<HTMLElement | null>(null)
 const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHeight } =
   useHorizonChart()
 
+// Series filter state
+const seriesFilter = ref<'all' | 'first'>('all')
+const seriesFilterOptions = [
+  { label: 'All series', value: 'all' },
+  { label: 'First series only', value: 'first' }
+]
+
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
     downloadSVG(chartContainer.value, `horizon-plot-${props.dataProperty}.svg`)
@@ -39,7 +60,13 @@ const handleDownloadSVG = () => {
 }
 
 const createChart = () => {
-  const data = parseCSVData(atlasScoreData)
+  let data = parseCSVData(atlasScoreData)
+
+  // Apply series filter if needed
+  if (seriesFilter.value === 'first') {
+    data = filterFirstSeriesOnly(data)
+  }
+
   createHorizonPlot(data)
 }
 
@@ -197,7 +224,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
 
 // Watch for prop changes and recreate the plot
 watch(
-  () => [props.bandHeight, props.numBands, props.dataProperty],
+  () => [props.bandHeight, props.numBands, props.dataProperty, seriesFilter.value],
   () => {
     createChart()
   }
@@ -216,11 +243,17 @@ onMounted(() => {
   padding: 20px;
 }
 
-.plot-header {
+.controls-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.series-filter {
+  margin-right: auto;
 }
 
 .download-btn {

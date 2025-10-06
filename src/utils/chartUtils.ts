@@ -90,3 +90,52 @@ export const sortCategoriesByOrder = (categories: string[]): string[] => {
     return 0
   })
 }
+
+export const filterFirstSeriesOnly = (data: EnvironmentalData[]): EnvironmentalData[] => {
+  // Group by category and field combination
+  const groups = new Map<string, EnvironmentalData[]>()
+
+  data.forEach((item) => {
+    const key = `${item.category}|${item.field}`
+    if (!groups.has(key)) {
+      groups.set(key, [])
+    }
+    groups.get(key)!.push(item)
+  })
+
+  // For each group, find the first continuous series based on ID
+  const filteredData: EnvironmentalData[] = []
+
+  groups.forEach((groupData) => {
+    if (groupData.length === 0) return
+
+    // Sort by ID to identify series breaks
+    const sortedData = groupData.sort((a, b) => a.id - b.id)
+
+    // Find the first continuous series
+    const firstItem = sortedData[0]
+    if (!firstItem) return
+
+    const firstSeries: EnvironmentalData[] = [firstItem]
+    let lastId = firstItem.id
+
+    for (let i = 1; i < sortedData.length; i++) {
+      const currentItem = sortedData[i]
+      if (!currentItem) continue
+
+      const currentId = currentItem.id
+      // If ID is consecutive, it's part of the same series
+      if (currentId === lastId + 1) {
+        firstSeries.push(currentItem)
+        lastId = currentId
+      } else {
+        // Found a gap, stop here as we only want the first series
+        break
+      }
+    }
+
+    filteredData.push(...firstSeries)
+  })
+
+  return filteredData
+}
