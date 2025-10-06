@@ -1,7 +1,19 @@
 <template>
   <div class="horizon-plot-container">
     <h2>Environmental Data Horizon Plot</h2>
+    <div class="controls">
+      <q-btn
+        @click="toggleDataProperty"
+        color="primary"
+        :label="'Plotting: ' + (dataProperty === 'value' ? 'Raw Value' : 'Score')"
+      />
+    </div>
     <div ref="chartContainer" class="chart-container"></div>
+
+    <!-- Detailed chart overlay -->
+    <div v-if="showDetailedChart" class="overlay" @click="closeDetailedChart">
+      <DetailedChart :data="selectedFieldData" :field="selectedField" @close="closeDetailedChart" />
+    </div>
   </div>
 </template>
 
@@ -9,8 +21,13 @@
 import { ref, onMounted } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
+import DetailedChart from './DetailedChart.vue'
 
 const chartContainer = ref<HTMLElement | null>(null)
+const selectedFieldData = ref<Array<{ time: Date; value: number }>>([])
+const selectedField = ref<string>('')
+const showDetailedChart = ref<boolean>(false)
+const dataProperty = ref<'value' | 'score'>('score')
 
 interface EnvironmentalData {
   id: number
@@ -19,6 +36,13 @@ interface EnvironmentalData {
   field: string
   value: number
   score: number
+}
+
+// Toggle between value and score properties
+const toggleDataProperty = () => {
+  dataProperty.value = dataProperty.value === 'value' ? 'score' : 'value'
+  const data = parseData()
+  createHorizonPlot(data)
 }
 
 // Parse CSV data
@@ -47,11 +71,21 @@ const parseData = (): EnvironmentalData[] => {
         time: new Date(timeStr),
         category,
         field,
-        value: score,
+        value,
         score
       }
     })
     .filter((item): item is EnvironmentalData => item !== null)
+}
+
+const openDetailedChart = (field: string, data: Array<{ time: Date; value: number }>) => {
+  selectedField.value = field
+  selectedFieldData.value = data
+  showDetailedChart.value = true
+}
+
+const closeDetailedChart = () => {
+  showDetailedChart.value = false
 }
 
 // Create horizon plot
@@ -94,6 +128,9 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   fields.forEach((field, i) => {
     const fieldData = groupedData.get(field) || []
 
+    // Get the property to use for plotting
+    const plotProperty = dataProperty.value
+
     // Create the horizontal (temporal) scale
     const x = d3
       .scaleUtc()
@@ -103,16 +140,16 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     // Create the vertical scale
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(fieldData, (d) => d.value) as number])
+      .domain([0, d3.max(fieldData, (d) => d[plotProperty]) as number])
       .range([size, size - bands * (size - padding)])
 
     // Create area generator
     const area = d3
       .area<EnvironmentalData>()
-      .defined((d) => !isNaN(d.value))
+      .defined((d) => !isNaN(d[plotProperty]))
       .x((d) => x(d.time))
       .y0(size)
-      .y1((d) => y(d.value))
+      .y1((d) => y(d[plotProperty]))
 
     // Unique identifier for clip rect and reusable paths
     const uid = `O-${Math.random().toString(16).slice(2)}`
@@ -136,6 +173,13 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     // Create a group for each field, in which the reference area will be replicated
     // (with the SVG:use element) for each band, and translated
     const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${i})`)
+
+    // Add click handler to the group
+    g.style('cursor', 'pointer').on('click', () => {
+      // Prepare data for detailed chart (using the current plot property)
+      const chartData = fieldData.map((d) => ({ time: d.time, value: d[plotProperty] }))
+      openDetailedChart(field, chartData)
+    })
 
     bandGroup
       .selectAll('use')
@@ -189,6 +233,28 @@ onMounted(() => {
   padding: 20px;
 }
 
+.controls {
+  margin-bottom: 10px;
+}
+
+.toggle-button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toggle-button:hover {
+  background-color: #45a049;
+}
+
 .chart-container {
   width: 100%;
   overflow-x: auto;
@@ -197,5 +263,15 @@ onMounted(() => {
 .chart-container svg {
   display: block;
   margin: 0 auto;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 </style>
