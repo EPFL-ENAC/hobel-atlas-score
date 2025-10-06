@@ -270,7 +270,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       // Create area generator
       const area = d3
         .area<EnvironmentalData>()
-        .defined((d) => !isNaN(d[plotProperty]))
+        .defined((d) => !isNaN(d[plotProperty]) && d[plotProperty] > 0)
         .x((d) => x(d.time))
         .y0(size)
         .y1((d) => y(d[plotProperty]))
