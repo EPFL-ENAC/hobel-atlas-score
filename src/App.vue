@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import HorizonPlot from './components/visualizations/HorizonPlot.vue'
+import CircularCategoryPlot from './components/visualizations/CircularCategoryPlot.vue'
 
-// Reactive variables for controlling the horizon plot
+// Reactive variables for controlling the plots
 const bandHeight = ref<number>(60)
 const numBands = ref<number>(3)
 const dataProperty = ref<'value' | 'score'>('score')
@@ -70,7 +71,17 @@ const updateDataProperty = (value: 'value' | 'score') => {
         </div>
       </div>
     </div>
-    <HorizonPlot :band-height="bandHeight" :num-bands="numBands" :data-property="dataProperty" />
+
+    <!-- Visualization Components -->
+    <div class="visualization-section">
+      <h4>Horizon Plot</h4>
+      <HorizonPlot :band-height="bandHeight" :num-bands="numBands" :data-property="dataProperty" />
+    </div>
+
+    <div class="visualization-section">
+      <h4>Category Overview</h4>
+      <CircularCategoryPlot :data-property="dataProperty" />
+    </div>
   </div>
 </template>
 
@@ -107,6 +118,18 @@ const updateDataProperty = (value: 'value' | 'score') => {
 
 .control-item .slider {
   width: 200px;
+}
+
+.visualization-section {
+  margin-bottom: 40px;
+  padding: 20px 0;
+}
+
+.visualization-section h4 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.2em;
 }
 
 @media (max-width: 768px) {
