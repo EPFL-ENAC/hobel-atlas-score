@@ -298,13 +298,6 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       // (with the SVG:use element) for each band, and translated
       const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${globalIndex})`)
 
-      // Add click handler to the group
-      g.style('cursor', 'pointer').on('click', () => {
-        // Prepare data for detailed chart (using the current plot property)
-        const chartData = fieldData.map((d) => ({ time: d.time, value: d[plotProperty] }))
-        openDetailedChart(`${category} - ${field}`, chartData)
-      })
-
       bandGroup
         .selectAll('use')
         .data(new Array(bands).fill(globalIndex))
@@ -330,6 +323,20 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
         .attr('stroke-opacity', 0.8)
         .attr('paint-order', 'stroke')
         .text(field.replace(/_/g, ' ').toUpperCase())
+
+      // Add a transparent rectangle that covers the entire band area to make it clickable
+      g.append('rect')
+        .attr('x', 0)
+        .attr('y', padding)
+        .attr('width', width - marginLeft - marginRight)
+        .attr('height', size - padding)
+        .attr('fill', 'transparent')
+        .style('cursor', 'pointer')
+        .on('click', () => {
+          // Prepare data for detailed chart (using the current plot property)
+          const chartData = fieldData.map((d) => ({ time: d.time, value: d[plotProperty] }))
+          openDetailedChart(`${category} - ${field}`, chartData)
+        })
 
       // Add the horizontal axis (only for the first field of the first category)
       if (catIndex === 0 && fieldIndex === 0) {
