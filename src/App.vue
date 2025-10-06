@@ -39,6 +39,8 @@ const updateDataProperty = (value: 'value' | 'score') => {
               { label: 'Score', value: 'score' }
             ]"
             type="radio"
+            class="option-group"
+            inline
             @update:model-value="updateDataProperty"
           />
         </div>
