@@ -31,6 +31,9 @@
         />
       </div>
     </div>
+
+    <!-- CSV Explorer -->
+    <CSVExplorer v-if="isUsingCustomData" :data="uploadedData" />
   </div>
 </template>
 
@@ -38,6 +41,7 @@
 import { ref } from 'vue'
 import type { EnvironmentalData } from '../composables/useHorizonChart'
 import { parseCSVData } from '../utils/chartUtils'
+import CSVExplorer from './CSVExplorer.vue'
 
 // Emits
 const emit = defineEmits<{
@@ -49,6 +53,7 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement | null>(null)
 const fileName = ref<string>('')
 const isUsingCustomData = ref<boolean>(false)
+const uploadedData = ref<EnvironmentalData[] | null>(null)
 
 // Methods
 const triggerFileInput = () => {
@@ -72,6 +77,7 @@ const handleFileChange = async (event: Event) => {
 
     fileName.value = file.name
     isUsingCustomData.value = true
+    uploadedData.value = parsedData
 
     emit('dataChanged', parsedData)
     emit('fileStatusChanged', true, file.name)
@@ -84,6 +90,7 @@ const handleFileChange = async (event: Event) => {
 const resetFile = () => {
   fileName.value = ''
   isUsingCustomData.value = false
+  uploadedData.value = null
 
   if (fileInput.value) {
     fileInput.value.value = ''
