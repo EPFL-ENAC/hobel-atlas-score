@@ -1,6 +1,7 @@
 <template>
   <div class="file-upload-container">
-    <div class="upload-controls">
+    <!-- File Upload Header Line -->
+    <div class="upload-header">
       <input
         ref="fileInput"
         type="file"
@@ -13,27 +14,27 @@
         @click="triggerFileInput"
         flat
         icon="upload_file"
-        :label="isUsingCustomData ? 'Change file' : 'Upload CSV'"
+        label="Change file"
         class="upload-btn"
       />
 
       <div v-if="isUsingCustomData" class="file-info">
         <span class="filename">{{ fileName }}</span>
-        <q-btn
-          @click="resetFile"
-          flat
-          dense
-          round
-          icon="close"
-          size="sm"
-          class="reset-btn"
-          title="Use default data"
-        />
       </div>
+
+      <q-btn
+        v-if="uploadedData && uploadedData.length > 0"
+        @click="toggleDataPreview"
+        flat
+        dense
+        :icon="isDataPreviewExpanded ? 'expand_less' : 'expand_more'"
+        :label="isDataPreviewExpanded ? 'Hide' : 'Show'"
+        class="preview-toggle-btn"
+      />
     </div>
 
     <!-- CSV Explorer -->
-    <CSVExplorer :data="uploadedData" />
+    <CSVExplorer v-if="isDataPreviewExpanded" :data="uploadedData" />
   </div>
 </template>
 
@@ -55,6 +56,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const fileName = ref<string>('')
 const isUsingCustomData = ref<boolean>(false)
 const uploadedData = ref<EnvironmentalData[] | null>(null)
+const isDataPreviewExpanded = ref<boolean>(false)
 
 // Load default data on mount
 onMounted(() => {
@@ -93,31 +95,24 @@ const handleFileChange = async (event: Event) => {
   }
 }
 
-const resetFile = () => {
-  fileName.value = ''
-  isUsingCustomData.value = false
-  uploadedData.value = parseCSVData(atlasScoreData)
-
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-
-  emit('dataChanged', null)
-  emit('fileStatusChanged', false, '')
+const toggleDataPreview = () => {
+  isDataPreviewExpanded.value = !isDataPreviewExpanded.value
 }
 </script>
 
 <style scoped>
 .file-upload-container {
   margin-bottom: 20px;
-  justify-items: center;
 }
 
-.upload-controls {
+.upload-header {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
 }
 
 .file-input {
@@ -148,18 +143,20 @@ const resetFile = () => {
   font-weight: 500;
 }
 
-.reset-btn {
-  color: #6c757d;
-}
-
-.reset-btn:hover {
-  color: #495057;
+.preview-toggle-btn {
+  margin-left: auto;
+  color: #666;
 }
 
 @media (max-width: 768px) {
-  .upload-controls {
+  .upload-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .preview-toggle-btn {
+    margin-left: 0;
+    align-self: flex-end;
   }
 }
 </style>
