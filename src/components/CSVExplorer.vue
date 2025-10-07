@@ -65,7 +65,6 @@ const props = defineProps<{
 }>()
 
 // State
-const isExpanded = ref(false)
 const searchText = ref('')
 const sortColumn = ref<keyof EnvironmentalData>('id')
 const sortDirection = ref<'asc' | 'desc'>('asc')
@@ -115,20 +114,6 @@ const columns: QTableColumn[] = [
     sortable: true
   }
 ]
-
-// Methods
-const toggleExpanded = () => {
-  isExpanded.value = !isExpanded.value
-}
-
-const sortBy = (column: keyof EnvironmentalData) => {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortColumn.value = column
-    sortDirection.value = 'asc'
-  }
-}
 
 const formatDate = (date: Date): string => {
   return date.toLocaleString('en-US', {
