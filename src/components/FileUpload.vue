@@ -33,15 +33,16 @@
     </div>
 
     <!-- CSV Explorer -->
-    <CSVExplorer v-if="isUsingCustomData" :data="uploadedData" />
+    <CSVExplorer :data="uploadedData" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import type { EnvironmentalData } from '../composables/useHorizonChart'
 import { parseCSVData } from '../utils/chartUtils'
 import CSVExplorer from './CSVExplorer.vue'
+import atlasScoreData from '../assets/atlas_score_example.csv?raw'
 
 // Emits
 const emit = defineEmits<{
@@ -54,6 +55,11 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const fileName = ref<string>('')
 const isUsingCustomData = ref<boolean>(false)
 const uploadedData = ref<EnvironmentalData[] | null>(null)
+
+// Load default data on mount
+onMounted(() => {
+  uploadedData.value = parseCSVData(atlasScoreData)
+})
 
 // Methods
 const triggerFileInput = () => {
@@ -90,7 +96,7 @@ const handleFileChange = async (event: Event) => {
 const resetFile = () => {
   fileName.value = ''
   isUsingCustomData.value = false
-  uploadedData.value = null
+  uploadedData.value = parseCSVData(atlasScoreData)
 
   if (fileInput.value) {
     fileInput.value.value = ''

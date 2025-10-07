@@ -273,7 +273,7 @@ watch(searchText, () => {
 }
 
 .search-input {
-  max-width: 400px;
+  width: 100%;
 }
 
 .table-container {
