@@ -19,11 +19,41 @@ import * as d3 from 'd3'
 const props = defineProps<{
   schemeName: string
   label: string
+  customColor?: string
 }>()
+
+// Function to generate a custom color scale from a base color (same as in useColorSchemes)
+const generateCustomColorScale = (baseColor: string, count: number): string[] => {
+  const baseRgb = d3.rgb(baseColor)
+  const colors: string[] = []
+
+  // Generate colors from light to dark
+  for (let i = 0; i < count; i++) {
+    const lightness = 0.9 - (i / (count - 1)) * 0.7 // From 90% to 20% lightness
+    const hsl = d3.hsl(baseRgb)
+
+    // Adjust lightness while preserving hue and saturation
+    hsl.l = Math.max(0.1, Math.min(0.9, lightness))
+
+    // For very light colors, increase saturation for better visibility
+    if (i === 0 && hsl.s < 0.3) {
+      hsl.s = Math.min(0.5, hsl.s + 0.2)
+    }
+
+    colors.push(hsl.hex())
+  }
+
+  return colors
+}
 
 // Get the colors for this scheme
 const colors = computed(() => {
   const count = 6 // Generate 6 colors for preview
+
+  // Handle custom color scheme
+  if (props.schemeName === 'custom' && props.customColor) {
+    return generateCustomColorScale(props.customColor, count)
+  }
 
   try {
     // First try discrete scheme if not an interpolation scheme

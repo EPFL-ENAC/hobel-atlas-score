@@ -313,7 +313,8 @@ watch(
     props.innerRadius,
     props.customData,
     props.numBands,
-    props.colorSchemesComposable?.categoryColorSchemes
+    props.colorSchemesComposable?.categoryColorSchemes,
+    props.colorSchemesComposable?.customColors
   ],
   () => {
     createCircularPlot()

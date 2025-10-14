@@ -233,6 +233,7 @@ watch(
     props.dataProperty,
     props.customData,
     props.colorSchemesComposable?.categoryColorSchemes,
+    props.colorSchemesComposable?.customColors,
     seriesFilter.value
   ],
   () => {

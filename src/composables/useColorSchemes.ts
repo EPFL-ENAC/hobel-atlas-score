@@ -3,6 +3,8 @@ import * as d3 from 'd3'
 
 // Available D3 color schemes
 export const availableSchemes = [
+  // Custom option - should be first for easy access
+  { label: 'Custom', value: 'custom', schemeName: 'custom' },
   // Discrete color schemes
   { label: 'Blues', value: 'schemeBlues', schemeName: 'schemeBlues' },
   { label: 'Greens', value: 'schemeGreens', schemeName: 'schemeGreens' },
@@ -50,6 +52,14 @@ export const useColorSchemes = () => {
     'Acoustic comfort': defaultSchemes['Acoustic comfort']
   })
 
+  // Store custom colors for each category
+  const customColors = ref({
+    'Air quality': '#4ade80', // Default green
+    'Thermal comfort': '#f87171', // Default red
+    'Luminous comfort': '#fbbf24', // Default yellow/orange
+    'Acoustic comfort': '#60a5fa' // Default blue
+  })
+
   // Helper function to generate discrete colors from interpolation functions
   // Inspired by Observable's ramp function for better color sampling
   const generateColorsFromInterpolation = (
@@ -65,8 +75,38 @@ export const useColorSchemes = () => {
     return colors
   }
 
+  // Function to generate a custom color scale from a base color
+  const generateCustomColorScale = (baseColor: string, count: number): string[] => {
+    const baseRgb = d3.rgb(baseColor)
+    const colors: string[] = []
+
+    // Generate colors from light to dark
+    for (let i = 0; i < count; i++) {
+      const lightness = 0.9 - (i / (count - 1)) * 0.7 // From 90% to 20% lightness
+      const hsl = d3.hsl(baseRgb)
+
+      // Adjust lightness while preserving hue and saturation
+      hsl.l = Math.max(0.1, Math.min(0.9, lightness))
+
+      // For very light colors, increase saturation for better visibility
+      if (i === 0 && hsl.s < 0.3) {
+        hsl.s = Math.min(0.5, hsl.s + 0.2)
+      }
+
+      colors.push(hsl.hex())
+    }
+
+    return colors
+  }
+
   // Enhanced function to get colors for any scheme (discrete or interpolation)
-  const getSchemeColors = (schemeName: string, count: number): string[] => {
+  const getSchemeColors = (schemeName: string, count: number, category?: string): string[] => {
+    // Handle custom color scheme
+    if (schemeName === 'custom' && category) {
+      const baseColor = customColors.value[category as keyof typeof customColors.value]
+      return generateCustomColorScale(baseColor, count)
+    }
+
     // First try to get discrete scheme if it exists
     if (!schemeName.startsWith('interpolate')) {
       try {
@@ -103,9 +143,14 @@ export const useColorSchemes = () => {
     const schemeName =
       categoryColorSchemes.value[category as keyof typeof categoryColorSchemes.value]
 
+    // For custom schemes, we don't need to add extra colors and slice
+    if (schemeName === 'custom') {
+      return getSchemeColors(schemeName, bands, category)
+    }
+
     // Use the enhanced getSchemeColors function and slice to exclude the lightest color
     // This follows D3's convention where the first color is typically too light for good contrast
-    const colors = getSchemeColors(schemeName, bands + 1)
+    const colors = getSchemeColors(schemeName, bands + 1, category)
     return colors.slice(1) // Remove the first (lightest) color
   }
 
@@ -122,11 +167,20 @@ export const useColorSchemes = () => {
     }
   }
 
+  // Function to update a category's custom color
+  const updateCustomColor = (category: string, color: string) => {
+    if (category in customColors.value) {
+      customColors.value[category as keyof typeof customColors.value] = color
+    }
+  }
+
   return {
     categoryColorSchemes,
+    customColors,
     availableSchemes,
     getCategoryColors,
     getCategoryBaseColor,
-    updateCategoryColorScheme
+    updateCategoryColorScheme,
+    updateCustomColor
   }
 }

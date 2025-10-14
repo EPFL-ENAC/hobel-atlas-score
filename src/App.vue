@@ -18,7 +18,8 @@ const csvData = ref<EnvironmentalData[] | null>(null)
 
 // Color scheme management
 const colorSchemesComposable = useColorSchemes()
-const { categoryColorSchemes, updateCategoryColorScheme } = colorSchemesComposable
+const { categoryColorSchemes, customColors, updateCategoryColorScheme, updateCustomColor } =
+  colorSchemesComposable
 
 // Helper function to get scheme info by value
 const getSchemeInfo = (value: string) => {
@@ -153,6 +154,9 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
                     <ColorSchemePreview
                       :scheme-name="scope.opt.schemeName"
                       :label="scope.opt.label"
+                      :custom-color="
+                        scope.opt.schemeName === 'custom' ? customColors[category] : undefined
+                      "
                     />
                   </q-item-section>
                 </q-item>
@@ -162,9 +166,23 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
                 <ColorSchemePreview
                   :scheme-name="getSchemeInfo(categoryColorSchemes[category]).schemeName"
                   :label="getSchemeInfo(categoryColorSchemes[category]).label"
+                  :custom-color="
+                    categoryColorSchemes[category] === 'custom' ? customColors[category] : undefined
+                  "
                 />
               </template>
             </q-select>
+
+            <!-- Custom color picker - only show when custom is selected -->
+            <div v-if="categoryColorSchemes[category] === 'custom'" class="custom-color-picker">
+              <label class="custom-color-label">Custom Color:</label>
+              <input
+                type="color"
+                :value="customColors[category]"
+                @input="(event) => updateCustomColor(category, (event.target as HTMLInputElement).value)"
+                class="color-input"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -257,6 +275,41 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
   font-weight: 500;
   font-size: 0.9em;
   color: #555;
+}
+
+.custom-color-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.custom-color-label {
+  font-size: 0.8em;
+  color: #666;
+  margin: 0;
+}
+
+.color-input {
+  width: 40px;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
 }
 
 .color-select {
