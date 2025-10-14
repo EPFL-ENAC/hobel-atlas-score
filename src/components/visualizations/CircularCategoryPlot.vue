@@ -49,15 +49,21 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
     'Acoustic comfort': '#8B4513' // Saddle Brown - warm earthy tone
   }
 
-  groupedByCategory.forEach((categoryData, category) => {
-    const values = categoryData.map((d) => (props.dataProperty === 'score' ? d.score : d.value))
-    const average = d3.mean(values) || 0
+  const categoryOrder = ['Thermal comfort', 'Acoustic comfort', 'Luminous comfort', 'Air quality']
 
-    categoryAverages.push({
-      category,
-      average: Math.round(average),
-      color: categoryColors[category] || '#6b7280'
-    })
+  // Process categories in the specified order
+  categoryOrder.forEach((category) => {
+    const categoryData = groupedByCategory.get(category)
+    if (categoryData && categoryData.length > 0) {
+      const values = categoryData.map((d) => (props.dataProperty === 'score' ? d.score : d.value))
+      const average = d3.mean(values) || 0
+
+      categoryAverages.push({
+        category,
+        average: Math.round(average),
+        color: categoryColors[category] || '#6b7280'
+      })
+    }
   })
 
   return categoryAverages
@@ -98,6 +104,8 @@ const createCircularPlot = () => {
     .pie<{ category: string; average: number; color: string }>()
     .value(() => 100) // Equal slices for all categories
     .sort(null)
+    .startAngle(0) // Start at the top (12 o'clock position)
+    .endAngle(2 * Math.PI) // Full circle
 
   // Create arc generator
   const arc = d3
