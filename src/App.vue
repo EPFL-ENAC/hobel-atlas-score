@@ -10,6 +10,7 @@ import { useColorSchemes, availableSchemes } from './composables/useColorSchemes
 // Reactive variables for controlling the plots
 const bandHeight = ref<number>(60)
 const numBands = ref<number>(3)
+const circularPlotBands = ref<number>(4)
 const dataProperty = ref<'value' | 'score'>('score')
 
 // Data management
@@ -40,6 +41,12 @@ const updateBandHeight = (value: number | null) => {
 const updateNumBands = (value: number | null) => {
   if (value !== null) {
     numBands.value = value
+  }
+}
+
+const updateCircularPlotBands = (value: number | null) => {
+  if (value !== null) {
+    circularPlotBands.value = value
   }
 }
 
@@ -94,7 +101,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
         </div>
 
         <div class="control-item">
-          <label>Bands: {{ numBands }}</label>
+          <label>Horizon Bands: {{ numBands }}</label>
           <q-slider
             :model-value="numBands"
             :min="2"
@@ -102,6 +109,18 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
             :step="1"
             class="slider"
             @update:model-value="updateNumBands"
+          />
+        </div>
+
+        <div class="control-item">
+          <label>Circular Bands: {{ circularPlotBands }}</label>
+          <q-slider
+            :model-value="circularPlotBands"
+            :min="2"
+            :max="10"
+            :step="1"
+            class="slider"
+            @update:model-value="updateCircularPlotBands"
           />
         </div>
       </div>
@@ -169,6 +188,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
         :data-property="dataProperty"
         :custom-data="csvData"
         :color-schemes-composable="colorSchemesComposable"
+        :num-bands="circularPlotBands"
       />
     </div>
   </div>

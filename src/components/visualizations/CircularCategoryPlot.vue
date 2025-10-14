@@ -28,6 +28,7 @@ const props = defineProps<{
   innerRadius?: number
   customData?: EnvironmentalData[] | null
   colorSchemesComposable?: any
+  numBands?: number
 }>()
 
 const chartContainer = ref<HTMLElement | null>(null)
@@ -38,14 +39,20 @@ const handleDownloadSVG = () => {
   }
 }
 
-// Calculate average scores by category
+// Calculate average scores by category with banded colors
 const calculateCategoryAverages = (data: EnvironmentalData[]) => {
   const groupedByCategory = d3.group(data, (d) => d.category)
-  const categoryAverages: Array<{ category: string; average: number; color: string }> = []
+  const categoryAverages: Array<{
+    category: string
+    average: number
+    color: string
+    band: number
+  }> = []
 
   // Use color schemes from props or fallback to defaults
-  const { getCategoryBaseColor } = props.colorSchemesComposable || useColorSchemes()
+  const { getCategoryColors } = props.colorSchemesComposable || useColorSchemes()
 
+  const numBands = props.numBands || 4
   const categoryOrder = ['Thermal comfort', 'Acoustic comfort', 'Luminous comfort', 'Air quality']
 
   // Process categories in the specified order
@@ -54,11 +61,27 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
     if (categoryData && categoryData.length > 0) {
       const values = categoryData.map((d) => (props.dataProperty === 'score' ? d.score : d.value))
       const average = d3.mean(values) || 0
+      const roundedAverage = Math.round(average)
+
+      // Get colors for this category based on the number of bands
+      const colors = getCategoryColors(category, numBands)
+
+      // Calculate which band this average falls into
+      const bandSize = 100 / numBands
+      let bandIndex = Math.floor(roundedAverage / bandSize)
+      // Handle edge case where average is exactly 100
+      if (bandIndex >= numBands) bandIndex = numBands - 1
+      // Ensure bandIndex is not negative
+      if (bandIndex < 0) bandIndex = 0
+
+      // Get the color for this band
+      const color = colors[bandIndex] || colors[colors.length - 1]
 
       categoryAverages.push({
         category,
-        average: Math.round(average),
-        color: getCategoryBaseColor(category)
+        average: roundedAverage,
+        color,
+        band: bandIndex
       })
     }
   })
@@ -96,9 +119,16 @@ const createCircularPlot = () => {
 
   const g = svg.append('g').attr('transform', `translate(${width / 2}, ${height / 2})`)
 
+  type CategoryData = {
+    category: string
+    average: number
+    color: string
+    band: number
+  }
+
   // Create pie generator
   const pie = d3
-    .pie<{ category: string; average: number; color: string }>()
+    .pie<CategoryData>()
     .value(() => 100) // Equal slices for all categories
     .sort(null)
     .startAngle(0) // Start at the top (12 o'clock position)
@@ -106,7 +136,7 @@ const createCircularPlot = () => {
 
   // Create arc generator
   const arc = d3
-    .arc<d3.PieArcDatum<{ category: string; average: number; color: string }>>()
+    .arc<d3.PieArcDatum<CategoryData>>()
     .innerRadius(innerRadius)
     .outerRadius(outerRadius)
 
@@ -116,6 +146,21 @@ const createCircularPlot = () => {
   // Create the slices
   const slices = g.selectAll('.slice').data(pieData).enter().append('g').attr('class', 'slice')
 
+  // Create tooltip
+  const tooltip = d3
+    .select('body')
+    .append('div')
+    .attr('class', 'circular-tooltip')
+    .style('position', 'absolute')
+    .style('background', 'rgba(0, 0, 0, 0.8)')
+    .style('color', 'white')
+    .style('padding', '8px')
+    .style('border-radius', '4px')
+    .style('font-size', '12px')
+    .style('pointer-events', 'none')
+    .style('opacity', 0)
+    .style('z-index', 1000)
+
   // Add the arcs
   slices
     .append('path')
@@ -124,11 +169,29 @@ const createCircularPlot = () => {
     .attr('stroke', 'white')
     .attr('stroke-width', 2)
     .style('cursor', 'pointer')
-    .on('mouseover', function () {
+    .on('mouseover', function (event, d) {
       d3.select(this).transition().duration(200).attr('transform', 'scale(1.05)')
+
+      const numBands = props.numBands || 4
+      const bandSize = 100 / numBands
+      const minRange = Math.round(d.data.band * bandSize)
+      const maxRange = Math.round((d.data.band + 1) * bandSize)
+
+      tooltip
+        .style('opacity', 1)
+        .html(
+          `
+          <strong>${d.data.category}</strong><br/>
+          Average: ${d.data.average}<br/>
+          Band: ${minRange}%-${maxRange}% (${d.data.band + 1}/${numBands})
+        `
+        )
+        .style('left', event.pageX + 10 + 'px')
+        .style('top', event.pageY - 10 + 'px')
     })
     .on('mouseout', function () {
       d3.select(this).transition().duration(200).attr('transform', 'scale(1)')
+      tooltip.style('opacity', 0)
     })
     .each(function (d, i) {
       // Extract just the outer arc path for text positioning
@@ -249,6 +312,7 @@ watch(
     props.radius,
     props.innerRadius,
     props.customData,
+    props.numBands,
     props.colorSchemesComposable?.categoryColorSchemes
   ],
   () => {
