@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import * as d3 from 'd3'
+import { useColorSchemes } from './useColorSchemes'
 
 export interface EnvironmentalData {
   id: number
@@ -10,8 +11,11 @@ export interface EnvironmentalData {
   score: number
 }
 
-export const useHorizonChart = () => {
+export const useHorizonChart = (passedColorSchemes?: any) => {
   const expandedField = ref<string | null>(null)
+
+  // Get the default color schemes composable
+  const defaultColorSchemes = useColorSchemes()
 
   const toggleFieldExpansion = (fieldKey: string, recreateChart: () => void) => {
     if (expandedField.value === fieldKey) {
@@ -23,6 +27,17 @@ export const useHorizonChart = () => {
   }
 
   const getCategoryColors = (category: string, bands: number): string[] => {
+    // If we have custom color schemes passed in, use them
+    if (passedColorSchemes && passedColorSchemes.getCategoryColors) {
+      return passedColorSchemes.getCategoryColors(category, bands)
+    }
+
+    // Use the default color schemes composable
+    if (defaultColorSchemes.getCategoryColors) {
+      return defaultColorSchemes.getCategoryColors(category, bands)
+    }
+
+    // Fallback to original hardcoded logic
     let colorScheme: readonly string[] | undefined
 
     switch (category) {

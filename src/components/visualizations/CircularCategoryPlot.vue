@@ -19,6 +19,7 @@ import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
 import { parseCSVData, downloadSVG } from '../../utils/chartUtils'
 import type { EnvironmentalData } from '../../composables/useHorizonChart'
+import { useColorSchemes } from '../../composables/useColorSchemes'
 
 // Define props
 const props = defineProps<{
@@ -26,6 +27,7 @@ const props = defineProps<{
   radius?: number
   innerRadius?: number
   customData?: EnvironmentalData[] | null
+  colorSchemesComposable?: any
 }>()
 
 const chartContainer = ref<HTMLElement | null>(null)
@@ -41,13 +43,8 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
   const groupedByCategory = d3.group(data, (d) => d.category)
   const categoryAverages: Array<{ category: string; average: number; color: string }> = []
 
-  // Define colors for each category (improved color scheme)
-  const categoryColors: Record<string, string> = {
-    'Air quality': '#4682B4', // Steel Blue - cool, calming blue for air
-    'Thermal comfort': '#C71585', // Medium Violet Red - vibrant magenta
-    'Luminous comfort': '#00CED1', // Dark Turquoise - bright, evokes light
-    'Acoustic comfort': '#8B4513' // Saddle Brown - warm earthy tone
-  }
+  // Use color schemes from props or fallback to defaults
+  const { getCategoryBaseColor } = props.colorSchemesComposable || useColorSchemes()
 
   const categoryOrder = ['Thermal comfort', 'Acoustic comfort', 'Luminous comfort', 'Air quality']
 
@@ -61,7 +58,7 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
       categoryAverages.push({
         category,
         average: Math.round(average),
-        color: categoryColors[category] || '#6b7280'
+        color: getCategoryBaseColor(category)
       })
     }
   })
@@ -247,10 +244,17 @@ const createCircularPlot = () => {
 
 // Watch for prop changes and recreate the plot
 watch(
-  () => [props.dataProperty, props.radius, props.innerRadius, props.customData],
+  () => [
+    props.dataProperty,
+    props.radius,
+    props.innerRadius,
+    props.customData,
+    props.colorSchemesComposable?.categoryColorSchemes
+  ],
   () => {
     createCircularPlot()
-  }
+  },
+  { deep: true }
 )
 
 onMounted(() => {

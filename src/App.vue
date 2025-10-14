@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import HorizonPlot from './components/visualizations/HorizonPlot.vue'
 import CircularCategoryPlot from './components/visualizations/CircularCategoryPlot.vue'
 import FileUpload from './components/FileUpload.vue'
+import ColorSchemePreview from './components/ColorSchemePreview.vue'
 import type { EnvironmentalData } from './composables/useHorizonChart'
+import { useColorSchemes, availableSchemes } from './composables/useColorSchemes'
 
 // Reactive variables for controlling the plots
 const bandHeight = ref<number>(60)
@@ -12,6 +14,21 @@ const dataProperty = ref<'value' | 'score'>('score')
 
 // Data management
 const csvData = ref<EnvironmentalData[] | null>(null)
+
+// Color scheme management
+const colorSchemesComposable = useColorSchemes()
+const { categoryColorSchemes, updateCategoryColorScheme } = colorSchemesComposable
+
+// Helper function to get scheme info by value
+const getSchemeInfo = (value: string) => {
+  return (
+    availableSchemes.find((s) => s.value === value) || {
+      label: 'Blues',
+      value: 'schemeBlues',
+      schemeName: 'schemeBlues'
+    }
+  )
+}
 
 // Functions to update the plot parameters
 const updateBandHeight = (value: number | null) => {
@@ -88,6 +105,50 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
           />
         </div>
       </div>
+
+      <!-- Color Scheme Controls -->
+      <div class="color-controls">
+        <h6>Color Schemes</h6>
+        <div class="color-scheme-grid">
+          <div
+            class="category-color-control"
+            v-for="category in (['Air quality', 'Thermal comfort', 'Luminous comfort', 'Acoustic comfort'] as const)"
+            :key="category"
+          >
+            <label>{{ category }}:</label>
+            <q-select
+              :model-value="categoryColorSchemes[category]"
+              :options="availableSchemes"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+              outlined
+              dense
+              class="color-select"
+              @update:model-value="(value) => updateCategoryColorScheme(category, value)"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" class="scheme-option">
+                  <q-item-section>
+                    <ColorSchemePreview
+                      :scheme-name="scope.opt.schemeName"
+                      :label="scope.opt.label"
+                    />
+                  </q-item-section>
+                </q-item>
+              </template>
+
+              <template v-slot:selected-item>
+                <ColorSchemePreview
+                  :scheme-name="getSchemeInfo(categoryColorSchemes[category]).schemeName"
+                  :label="getSchemeInfo(categoryColorSchemes[category]).label"
+                />
+              </template>
+            </q-select>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Visualization Components -->
@@ -98,12 +159,17 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
         :num-bands="numBands"
         :data-property="dataProperty"
         :custom-data="csvData"
+        :color-schemes-composable="colorSchemesComposable"
       />
     </div>
 
     <div class="visualization-section">
       <h5>Category Overview</h5>
-      <CircularCategoryPlot :data-property="dataProperty" :custom-data="csvData" />
+      <CircularCategoryPlot
+        :data-property="dataProperty"
+        :custom-data="csvData"
+        :color-schemes-composable="colorSchemesComposable"
+      />
     </div>
   </div>
 </template>
@@ -141,6 +207,59 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 
 .control-item .slider {
   width: 200px;
+}
+
+.color-controls {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.color-controls h6 {
+  margin: 0 0 15px 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.color-scheme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.category-color-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.category-color-control label {
+  font-weight: 500;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.color-select {
+  width: 100%;
+  min-height: 40px;
+}
+
+.color-select :deep(.q-field__native) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.scheme-option {
+  padding: 4px 8px !important;
+  min-height: 44px;
+}
+
+.scheme-option:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.scheme-option .q-item__section {
+  padding: 0;
 }
 
 .visualization-section {

@@ -41,11 +41,12 @@ const props = defineProps<{
   numBands: number
   dataProperty: 'value' | 'score'
   customData?: EnvironmentalData[] | null
+  colorSchemesComposable?: any
 }>()
 
 const chartContainer = ref<HTMLElement | null>(null)
 const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHeight } =
-  useHorizonChart()
+  useHorizonChart(props.colorSchemesComposable)
 
 // Series filter state
 const seriesFilter = ref<'all' | 'first'>('all')
@@ -231,11 +232,13 @@ watch(
     props.numBands,
     props.dataProperty,
     props.customData,
+    props.colorSchemesComposable?.categoryColorSchemes,
     seriesFilter.value
   ],
   () => {
     createChart()
-  }
+  },
+  { deep: true }
 )
 
 onMounted(() => {
