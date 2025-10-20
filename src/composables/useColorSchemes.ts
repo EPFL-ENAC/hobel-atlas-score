@@ -32,7 +32,15 @@ export const availableSchemes = [
   { label: 'Plasma', value: 'interpolatePlasma', schemeName: 'interpolatePlasma' },
   { label: 'Cividis', value: 'interpolateCividis', schemeName: 'interpolateCividis' },
   { label: 'Warm', value: 'interpolateWarm', schemeName: 'interpolateWarm' },
-  { label: 'Cool', value: 'interpolateCool', schemeName: 'interpolateCool' }
+  { label: 'Cool', value: 'interpolateCool', schemeName: 'interpolateCool' },
+  // Diverging color schemes
+  { label: 'Spectral', value: 'schemeSpectral', schemeName: 'schemeSpectral' },
+  { label: 'Red-Yellow-Blue', value: 'schemeRdYlBu', schemeName: 'schemeRdYlBu' },
+  { label: 'Red-Yellow-Green', value: 'schemeRdYlGn', schemeName: 'schemeRdYlGn' },
+  { label: 'Red-Blue', value: 'schemeRdBu', schemeName: 'schemeRdBu' },
+  { label: 'Pink-Yellow-Green', value: 'schemePiYG', schemeName: 'schemePiYG' },
+  { label: 'Purple-Red-Green', value: 'schemePRGn', schemeName: 'schemePRGn' },
+  { label: 'Brown-Blue-Green', value: 'schemeBrBG', schemeName: 'schemeBrBG' }
 ]
 
 // Default color schemes for each category
