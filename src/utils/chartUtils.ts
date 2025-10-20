@@ -67,7 +67,7 @@ export const downloadSVG = (container: HTMLElement, filename: string) => {
 }
 
 export const sortCategoriesByOrder = (categories: string[]): string[] => {
-  const categoryOrder = ['Lighting', 'Air quality', 'Acoustics', 'Thermal comfort']
+  const categoryOrder = ['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics']
 
   return categories.sort((a, b) => {
     const indexA = categoryOrder.indexOf(a)

@@ -96,7 +96,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     marginRight: 15,
     width: 928,
     height: 0, // Will be calculated
-    padding: 1
+    padding: 0
   }
 
   const expandedHeight = 200
@@ -220,8 +220,22 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       globalIndex++
     })
 
+    // Add a border line between categories (except after the last category)
+    if (catIndex < categories.length - 1) {
+      svg
+        .append('line')
+        .attr('x1', dimensions.marginLeft + 5)
+        .attr('x2', dimensions.width - dimensions.marginRight)
+        .attr('y1', yOffset + 25) // Center the line in the spacing
+        .attr('y2', yOffset + 25)
+        .attr('stroke', '#d1d5db') // Light gray color
+        .attr('stroke-width', 5)
+        // .attr('stroke-dasharray', '3,3') // Optional: make it dashed for subtlety
+        .attr('opacity', 0.7)
+    }
+
     // Add more spacing between categories
-    yOffset += 30
+    yOffset += 50
   })
 }
 

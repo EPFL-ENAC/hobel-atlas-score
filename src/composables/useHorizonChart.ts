@@ -78,7 +78,7 @@ export const useHorizonChart = (passedColorSchemes?: any) => {
         totalHeight += isExpanded ? expandedHeight : bandHeight
       })
 
-      totalHeight += 30 // Space between categories
+      totalHeight += 50 // Space between categories
     })
 
     return totalHeight
