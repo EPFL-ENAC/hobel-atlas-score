@@ -47,8 +47,8 @@ export const availableSchemes = [
 const defaultSchemes = {
   'Air quality': 'schemeGreens',
   'Thermal comfort': 'schemeReds',
-  'Luminous comfort': 'schemeYlOrBr',
-  'Acoustic comfort': 'schemeBlues'
+  Lighting: 'schemeYlOrBr',
+  Acoustics: 'schemeBlues'
 }
 
 export const useColorSchemes = () => {
@@ -56,16 +56,16 @@ export const useColorSchemes = () => {
   const categoryColorSchemes = ref({
     'Air quality': defaultSchemes['Air quality'],
     'Thermal comfort': defaultSchemes['Thermal comfort'],
-    'Luminous comfort': defaultSchemes['Luminous comfort'],
-    'Acoustic comfort': defaultSchemes['Acoustic comfort']
+    Lighting: defaultSchemes['Lighting'],
+    Acoustics: defaultSchemes['Acoustics']
   })
 
   // Store custom colors for each category
   const customColors = ref({
     'Air quality': '#4ade80', // Default green
     'Thermal comfort': '#f87171', // Default red
-    'Luminous comfort': '#fbbf24', // Default yellow/orange
-    'Acoustic comfort': '#60a5fa' // Default blue
+    Lighting: '#fbbf24', // Default yellow/orange
+    Acoustics: '#60a5fa' // Default blue
   })
 
   // Helper function to generate discrete colors from interpolation functions

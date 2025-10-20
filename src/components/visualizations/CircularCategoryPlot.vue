@@ -53,7 +53,7 @@ const calculateCategoryAverages = (data: EnvironmentalData[]) => {
   const { getCategoryColors } = props.colorSchemesComposable || useColorSchemes()
 
   const numBands = props.numBands || 4
-  const categoryOrder = ['Thermal comfort', 'Acoustic comfort', 'Luminous comfort', 'Air quality']
+  const categoryOrder = ['Thermal comfort', 'Acoustics', 'Lighting', 'Air quality']
 
   // Process categories in the specified order
   categoryOrder.forEach((category) => {

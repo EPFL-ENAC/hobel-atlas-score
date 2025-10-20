@@ -44,13 +44,13 @@ export const useHorizonChart = (passedColorSchemes?: any) => {
       case 'Air quality':
         colorScheme = d3.schemeGreens[bands + 1]
         break
-      case 'Acoustic comfort':
+      case 'Acoustics':
         colorScheme = d3.schemeBlues[bands + 1]
         break
       case 'Thermal comfort':
         colorScheme = d3.schemeReds[bands + 1]
         break
-      case 'Luminous comfort':
+      case 'Lighting':
         colorScheme = d3.schemeYlOrBr[bands + 1]
         break
       default:

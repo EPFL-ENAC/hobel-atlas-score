@@ -132,7 +132,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
         <div class="color-scheme-grid">
           <div
             class="category-color-control"
-            v-for="category in (['Air quality', 'Thermal comfort', 'Luminous comfort', 'Acoustic comfort'] as const)"
+            v-for="category in (['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics'] as const)"
             :key="category"
           >
             <label>{{ category }}:</label>

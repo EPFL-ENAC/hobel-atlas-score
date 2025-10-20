@@ -8,8 +8,8 @@ The ATLAS index evaluates holistic indoor environmental quality across four key 
 
 - **Indoor Air Quality** (with sub-parameters: CO2, formaldehyde, etc.)
 - **Thermal Comfort**
-- **Luminous Comfort**
-- **Acoustic Comfort**
+- **Lighting**
+- **Acoustics**
 
 Each aspect receives a score from 0-100, along with an overall environmental quality score. The visualization displays temporal variations at hourly resolution using color-coded horizon charts.
 
@@ -147,8 +147,8 @@ id,time,category,field,value,score
 
 - **Air quality**: CO2, formaldehyde, humidity, PM2.5, PM10, etc.
 - **Thermal comfort**: Temperature, humidity-related comfort metrics
-- **Luminous comfort**: Light levels, daylight availability
-- **Acoustic comfort**: Sound level indicators
+- **Lighting**: Light levels, daylight availability
+- **Acoustics**: Sound level indicators
 
 ### Multi-Series Support
 
