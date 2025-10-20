@@ -270,11 +270,15 @@ const createCircularPlot = () => {
   // Add center circle with overall info
   const overallAverage = Math.round(d3.mean(categoryData, (d) => d.average) || 0)
 
-  // Create Red-Yellow-Green color scale for the center circle (0 = bad/red, 100 = good/green)
-  const redYellowGreenColorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([0, 100])
+  // Get the color scheme for Overall IEQ from the composable
+  const { getCategoryColors } = props.colorSchemesComposable || useColorSchemes()
 
-  // Get color based on the overall average score
-  const centerColor = redYellowGreenColorScale(overallAverage)
+  // Create a color scale using the selected scheme for Overall IEQ
+  const overallColors = getCategoryColors('Overall IEQ', 100) // Get 100 colors for smooth gradient
+
+  // Calculate which color to use based on the overall average (0-100 scale)
+  const colorIndex = Math.max(0, Math.min(99, Math.floor(overallAverage))) // Clamp to 0-99
+  const centerColor = overallColors[colorIndex] || overallColors[overallColors.length - 1]
 
   g.append('circle')
     .attr('r', innerRadius)
@@ -285,14 +289,22 @@ const createCircularPlot = () => {
   // Add center text
   const centerGroup = g.append('g')
 
-  const textColor = (d: number) => (d < 30 || d > 70 ? 'white' : 'black') // Dark text for low scores, light text for high scores
+  // Calculate text color based on background color luminance for better contrast
+  const getTextColor = (backgroundColor: string) => {
+    const rgb = d3.rgb(backgroundColor)
+    // Calculate relative luminance using WCAG formula
+    const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255
+    return luminance > 0.5 ? 'black' : 'white'
+  }
+
+  const textColor = getTextColor(centerColor)
   centerGroup
     .append('text')
     .attr('text-anchor', 'middle')
     .attr('y', -8)
     .style('font-weight', 'bold')
     .style('font-size', '14px')
-    .style('fill', textColor(overallAverage))
+    .style('fill', textColor)
     .text('IEQ')
 
   centerGroup
@@ -301,7 +313,7 @@ const createCircularPlot = () => {
     .attr('y', 12)
     .style('font-weight', 'bold')
     .style('font-size', '18px')
-    .style('fill', textColor(overallAverage))
+    .style('fill', textColor)
     .text(overallAverage)
 }
 

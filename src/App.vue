@@ -132,7 +132,13 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
         <div class="color-scheme-grid">
           <div
             class="category-color-control"
-            v-for="category in (['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics'] as const)"
+            v-for="category in [
+              'Air quality',
+              'Thermal comfort',
+              'Lighting',
+              'Acoustics',
+              'Overall IEQ'
+            ] as const"
             :key="category"
           >
             <label>{{ category }}:</label>
@@ -179,7 +185,9 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
               <input
                 type="color"
                 :value="customColors[category]"
-                @input="(event) => updateCustomColor(category, (event.target as HTMLInputElement).value)"
+                @input="
+                  (event) => updateCustomColor(category, (event.target as HTMLInputElement).value)
+                "
                 class="color-input"
               />
             </div>

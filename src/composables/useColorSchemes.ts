@@ -48,7 +48,8 @@ const defaultSchemes = {
   'Air quality': 'schemeGreens',
   'Thermal comfort': 'schemeReds',
   Lighting: 'schemeYlOrBr',
-  Acoustics: 'schemeBlues'
+  Acoustics: 'schemeBlues',
+  'Overall IEQ': 'schemeRdYlGn' // Default to Red-Yellow-Green for overall score
 }
 
 export const useColorSchemes = () => {
@@ -57,7 +58,8 @@ export const useColorSchemes = () => {
     'Air quality': defaultSchemes['Air quality'],
     'Thermal comfort': defaultSchemes['Thermal comfort'],
     Lighting: defaultSchemes['Lighting'],
-    Acoustics: defaultSchemes['Acoustics']
+    Acoustics: defaultSchemes['Acoustics'],
+    'Overall IEQ': defaultSchemes['Overall IEQ']
   })
 
   // Store custom colors for each category
@@ -65,7 +67,8 @@ export const useColorSchemes = () => {
     'Air quality': '#4ade80', // Default green
     'Thermal comfort': '#f87171', // Default red
     Lighting: '#fbbf24', // Default yellow/orange
-    Acoustics: '#60a5fa' // Default blue
+    Acoustics: '#60a5fa', // Default blue
+    'Overall IEQ': '#22c55e' // Default green for overall score
   })
 
   // Helper function to generate discrete colors from interpolation functions
