@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import type { EnvironmentalData } from '../composables/useHorizonChart'
+import { formatWithUnicodeSubscripts } from './textFormatting'
 
 export interface ChartDimensions {
   marginTop: number
@@ -85,7 +86,7 @@ export const createExpandedLineChart = (
     .attr('font-size', 14)
     .attr('font-weight', 'bold')
     .attr('fill', '#333')
-    .text(field.replace(/_/g, ' ').toUpperCase() + ' (EXPANDED - Click to collapse)')
+    .text(formatWithUnicodeSubscripts(field) + ' (EXPANDED - Click to collapse)')
 
   // Add clickable area to collapse
   g.append('rect')

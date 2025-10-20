@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import type { EnvironmentalData } from '../composables/useHorizonChart'
 import type { ChartDimensions } from './expandedChart'
+import { formatWithUnicodeSubscripts } from './textFormatting'
 
 export const createHorizonBand = (
   svg: any,
@@ -79,7 +80,7 @@ export const createHorizonBand = (
     .attr('stroke-width', 3)
     .attr('stroke-opacity', 0.8)
     .attr('paint-order', 'stroke')
-    .text(field.replace(/_/g, ' ').toUpperCase())
+    .text(formatWithUnicodeSubscripts(field))
 
   // Add a transparent rectangle that covers the entire band area to make it clickable
   g.append('rect')
