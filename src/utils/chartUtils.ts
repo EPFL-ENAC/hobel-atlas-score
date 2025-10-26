@@ -66,6 +66,73 @@ export const downloadSVG = (container: HTMLElement, filename: string) => {
   URL.revokeObjectURL(url)
 }
 
+export const downloadPNG = (container: HTMLElement, filename: string, dpi: number = 300) => {
+  const svgElement = container.querySelector('svg')
+  if (!svgElement) return
+
+  // Get original SVG dimensions
+  const bbox = svgElement.getBoundingClientRect()
+  const width = bbox.width
+  const height = bbox.height
+
+  // Calculate scale factor for DPI (72 DPI is the default screen resolution)
+  const scale = dpi / 72
+
+  // Serialize the SVG
+  const serializer = new XMLSerializer()
+  let svgString = serializer.serializeToString(svgElement)
+
+  // Add namespaces if missing
+  if (!svgString.includes('xmlns')) {
+    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+  }
+  if (!svgString.includes('xmlns:xlink')) {
+    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+  }
+
+  // Create a blob and object URL
+  const blob = new Blob([svgString], { type: 'image/svg+xml' })
+  const url = URL.createObjectURL(blob)
+
+  // Create an image element
+  const img = new Image()
+  img.onload = () => {
+    // Create canvas with scaled dimensions
+    const canvas = document.createElement('canvas')
+    canvas.width = width * scale
+    canvas.height = height * scale
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Scale the context to achieve higher DPI
+    ctx.scale(scale, scale)
+
+    // Draw the image
+    ctx.drawImage(img, 0, 0)
+
+    // Convert to PNG and download
+    canvas.toBlob((pngBlob) => {
+      if (!pngBlob) return
+
+      const pngUrl = URL.createObjectURL(pngBlob)
+      const link = document.createElement('a')
+      link.href = pngUrl
+      link.download = filename.replace(/\.svg$/, '.png')
+
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Clean up
+      URL.revokeObjectURL(pngUrl)
+      URL.revokeObjectURL(url)
+    }, 'image/png')
+  }
+
+  img.src = url
+}
+
 export const sortCategoriesByOrder = (categories: string[]): string[] => {
   const categoryOrder = ['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics']
 

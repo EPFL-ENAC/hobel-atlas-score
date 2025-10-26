@@ -8,6 +8,13 @@
         label="Download SVG"
         class="download-btn"
       />
+      <q-btn
+        @click="handleDownloadPNG"
+        outline
+        icon="download"
+        label="Download PNG"
+        class="download-btn"
+      />
     </div>
     <div ref="chartContainer" class="chart-container"></div>
   </div>
@@ -17,7 +24,7 @@
 import { ref, onMounted, watch } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
-import { parseCSVData, downloadSVG } from '../../utils/chartUtils'
+import { parseCSVData, downloadSVG, downloadPNG } from '../../utils/chartUtils'
 import type { EnvironmentalData } from '../../composables/useHorizonChart'
 import { useColorSchemes } from '../../composables/useColorSchemes'
 
@@ -35,6 +42,12 @@ const chartContainer = ref<HTMLElement | null>(null)
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
     downloadSVG(chartContainer.value, `circular-category-plot.svg`)
+  }
+}
+
+const handleDownloadPNG = () => {
+  if (chartContainer.value) {
+    downloadPNG(chartContainer.value, `circular-category-plot.png`, 300)
   }
 }
 
@@ -314,80 +327,6 @@ const createCircularPlot = () => {
     .style('font-size', '30px')
     .style('fill', textColor)
     .text(overallAverage)
-
-  // Add legend
-  createLegend(svg, width, height, props.numBands || 4)
-}
-
-// Create legend for the circular plot
-const createLegend = (svg: any, width: number, _height: number, numBands: number) => {
-  const legendWidth = 150
-  const legendHeight = 80
-  const legendX = width - legendWidth - 10
-  const legendY = 10
-
-  const legendGroup = svg
-    .append('g')
-    .attr('class', 'legend')
-    .attr('transform', `translate(${legendX}, ${legendY})`)
-
-  // Add legend background
-  legendGroup
-    .append('rect')
-    .attr('x', -10)
-    .attr('y', -5)
-    .attr('width', legendWidth + 20)
-    .attr('height', legendHeight + 10)
-    .attr('fill', 'rgba(255, 255, 255, 0.9)')
-    .attr('stroke', '#ccc')
-    .attr('stroke-width', 1)
-    .attr('rx', 5)
-
-  // Add legend title
-  legendGroup
-    .append('text')
-    .attr('x', legendWidth / 2)
-    .attr('y', 10)
-    .attr('text-anchor', 'middle')
-    .attr('font-weight', 'bold')
-    .attr('font-size', '12px')
-    .text('Score Bands')
-
-  // Create sample color bands
-  const bandSize = 100 / numBands
-  const bandHeight = 12
-  const bandSpacing = 15
-
-  for (let i = 0; i < numBands; i++) {
-    const minRange = Math.round(i * bandSize)
-    const maxRange = Math.round((i + 1) * bandSize)
-
-    // Use a default color scheme for the legend (can be made dynamic later)
-    const hue = 120 - (i / (numBands - 1)) * 120 // Green to red
-    const color = `hsl(${hue}, 70%, 50%)`
-
-    const yPos = 20 + i * bandSpacing
-
-    // Add color rectangle
-    legendGroup
-      .append('rect')
-      .attr('x', 10)
-      .attr('y', yPos)
-      .attr('width', 20)
-      .attr('height', bandHeight)
-      .attr('fill', color)
-      .attr('stroke', 'white')
-      .attr('stroke-width', 1)
-
-    // Add text label
-    legendGroup
-      .append('text')
-      .attr('x', 35)
-      .attr('y', yPos + bandHeight / 2)
-      .attr('dy', '0.35em')
-      .attr('font-size', '10px')
-      .text(`${minRange}-${maxRange}%`)
-  }
 }
 
 // Watch for prop changes and recreate the plot
@@ -423,6 +362,7 @@ onMounted(() => {
   display: flex;
   justify-content: end;
   width: 100%;
+  gap: 2rem;
   margin-bottom: 10px;
 }
 

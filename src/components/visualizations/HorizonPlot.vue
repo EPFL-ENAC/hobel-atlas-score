@@ -22,6 +22,13 @@
         label="Download SVG"
         class="download-btn"
       />
+      <q-btn
+        @click="handleDownloadPNG"
+        outline
+        icon="download"
+        label="Download PNG"
+        class="download-btn"
+      />
     </div>
     <div ref="chartContainer" class="chart-container"></div>
   </div>
@@ -32,7 +39,12 @@ import { ref, onMounted, watch } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
 import { useHorizonChart } from '../../composables/useHorizonChart'
-import { parseCSVData, downloadSVG, sortCategoriesByOrder } from '../../utils/chartUtils'
+import {
+  parseCSVData,
+  downloadSVG,
+  sortCategoriesByOrder,
+  downloadPNG
+} from '../../utils/chartUtils'
 import { createExpandedLineChart, type ChartDimensions } from '../../utils/expandedChart'
 import { createHorizonBand } from '../../utils/horizonBand'
 import type { EnvironmentalData } from '../../composables/useHorizonChart'
@@ -54,6 +66,11 @@ const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHe
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
     downloadSVG(chartContainer.value, `horizon-plot-${dataProperty.value}.svg`)
+  }
+}
+const handleDownloadPNG = () => {
+  if (chartContainer.value) {
+    downloadPNG(chartContainer.value, `horizon-plot-${dataProperty.value}.png`)
   }
 }
 
