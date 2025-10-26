@@ -222,7 +222,6 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 
 <style scoped>
 .app-container {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
