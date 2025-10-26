@@ -111,7 +111,10 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     padding: 0
   }
 
+  const legendHeight = 100
+
   const expandedHeight = 200
+
   const totalHeight = calculateTotalHeight(
     categories,
     groupedByCategory,
@@ -125,8 +128,8 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     .select(chartContainer.value)
     .append('svg')
     .attr('width', dimensions.width)
-    .attr('height', dimensions.height)
-    .attr('viewBox', [0, 0, dimensions.width, dimensions.height])
+    .attr('height', dimensions.height + legendHeight)
+    .attr('viewBox', [0, 0, dimensions.width, dimensions.height + legendHeight])
     .attr(
       'style',
       'max-width: 100%; height: auto; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
@@ -251,93 +254,100 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
   })
 
   // Add legend
-  createLegend(svg, dimensions, props.numBands)
+  createLegend(svg, dimensions, props.numBands, categories)
 }
 
 // Create legend for the horizon plot
-const createLegend = (svg: any, dimensions: ChartDimensions, numBands: number) => {
-  const legendWidth = 200
-  const legendHeight = 80
-  const legendX = dimensions.width - dimensions.marginRight - legendWidth - 10
-  const legendY = dimensions.marginTop + 10
+const createLegend = (
+  svg: any,
+  dimensions: ChartDimensions,
+  numBands: number,
+  categories: string[]
+) => {
+  const legendWidth = dimensions.width - dimensions.marginLeft - dimensions.marginRight
+  const legendX = dimensions.marginLeft
+  const legendY = dimensions.height - dimensions.marginBottom - 20
 
   const legendGroup = svg
     .append('g')
     .attr('class', 'legend')
     .attr('transform', `translate(${legendX}, ${legendY})`)
 
-  // Add legend background
-  legendGroup
-    .append('rect')
-    .attr('x', -10)
-    .attr('y', -5)
-    .attr('width', legendWidth + 20)
-    .attr('height', legendHeight + 15)
-    .attr('fill', 'rgba(255, 255, 255, 0.95)')
-    .attr('stroke', '#ccc')
-    .attr('stroke-width', 1)
-    .attr('rx', 5)
-
   // Add legend title
   legendGroup
     .append('text')
-    .attr('x', legendWidth / 2)
-    .attr('y', 10)
-    .attr('text-anchor', 'middle')
+    .attr('x', 0)
+    .attr('y', 15)
+    .attr('text-anchor', 'left')
     .attr('font-weight', 'bold')
     .attr('font-size', '12px')
-    .text('Horizon Bands')
+    .text('Legend')
 
   // Create explanation text
   legendGroup
     .append('text')
-    .attr('x', legendWidth / 2)
-    .attr('y', 25)
-    .attr('text-anchor', 'middle')
+    .attr('x', 0)
+    .attr('y', 30)
+    .attr('text-anchor', 'left')
     .attr('font-size', '9px')
     .attr('fill', '#666')
-    .text('Each band represents value ranges')
+    .text('Each band represents score ranges')
 
-  // Show band ranges
-  const bandWidth = legendWidth / numBands
+  // Show band ranges with spacing between categories
+  const spacing = 20 // Space between categories
+  const categoryWidth = (legendWidth - spacing * (categories.length - 1)) / categories.length
+  const bandWidth = categoryWidth / numBands
 
-  for (let i = 0; i < numBands; i++) {
-    // Use a gradient from light to dark blue for the legend
-    const opacity = 0.3 + (i / (numBands - 1)) * 0.7
-    const color = `rgba(49, 130, 189, ${opacity})`
+  let xOffset = 0
 
-    // Add color band
-    legendGroup
-      .append('rect')
-      .attr('x', i * bandWidth)
-      .attr('y', 35)
-      .attr('width', bandWidth)
-      .attr('height', 15)
-      .attr('fill', color)
-      .attr('stroke', 'white')
-      .attr('stroke-width', 0.5)
+  for (let y = 0; y < categories.length; y++) {
+    const category = categories[y] as string
+    const colors = getCategoryColors(category, numBands)
 
-    // Add percentage labels
-    if (i === 0 || i === numBands - 1) {
-      legendGroup
-        .append('text')
-        .attr('x', i === 0 ? 0 : legendWidth)
-        .attr('y', 65)
-        .attr('text-anchor', i === 0 ? 'start' : 'end')
-        .attr('font-size', '9px')
-        .text(`${i === 0 ? '0' : '100'}%`)
+    // Create a group for each category
+    const categoryGroup = legendGroup
+      .append('g')
+      .attr('class', `legend-category-${y}`)
+      .attr('transform', `translate(${xOffset}, 0)`)
+
+    // Add category title
+    categoryGroup
+      .append('text')
+      .attr('x', categoryWidth / 2)
+      .attr('y', 50)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px')
+      .attr('font-weight', 'bold')
+      .attr('fill', '#333')
+      .text(category)
+
+    console.log(colors)
+    for (let i = 0; i < numBands; i++) {
+      // Add color band
+      categoryGroup
+        .append('rect')
+        .attr('x', i * bandWidth)
+        .attr('y', 55)
+        .attr('width', bandWidth)
+        .attr('height', 15)
+        .attr('fill', colors[i])
+        .attr('stroke', 'white')
+        .attr('stroke-width', 0.5)
+
+      // Add percentage labels
+      if (i === 0 || i === numBands - 1) {
+        categoryGroup
+          .append('text')
+          .attr('x', i === 0 ? 0 : categoryWidth)
+          .attr('y', 85)
+          .attr('text-anchor', i === 0 ? 'start' : 'end')
+          .attr('font-size', '9px')
+          .text(`${i === 0 ? '0' : '100'}%`)
+      }
     }
-  }
 
-  // Add color scheme note
-  legendGroup
-    .append('text')
-    .attr('x', legendWidth / 2)
-    .attr('y', 78)
-    .attr('text-anchor', 'middle')
-    .attr('font-size', '8px')
-    .attr('fill', '#888')
-    .text('Colors vary by category')
+    xOffset += categoryWidth + spacing
+  }
 }
 
 // Watch for prop changes and recreate the plot
