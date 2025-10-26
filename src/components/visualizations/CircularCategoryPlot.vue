@@ -37,6 +37,8 @@ const props = defineProps<{
   numBands?: number
 }>()
 
+const labelFontSize = '18px'
+const scoreFontSize = '22px'
 const chartContainer = ref<HTMLElement | null>(null)
 
 const handleDownloadSVG = () => {
@@ -126,7 +128,7 @@ const createCircularPlot = () => {
     .attr('viewBox', [0, 0, width, height])
     .attr(
       'style',
-      'max-width: 100%; height: auto; font: 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
+      'max-width: 100%; height: auto; font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
     )
 
   const g = svg.append('g').attr('transform', `translate(${width / 2}, ${height / 2})`)
@@ -259,7 +261,7 @@ const createCircularPlot = () => {
       return midAngle > Math.PI / 2 && midAngle < (3 * Math.PI) / 2 ? 18 : -11
     })
     .style('font-weight', 'bold')
-    .style('font-size', '18px')
+    .style('font-size', labelFontSize)
     .style('fill', '#333')
     .append('textPath')
     .attr('startOffset', '50%')
@@ -274,7 +276,7 @@ const createCircularPlot = () => {
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'middle')
     .style('font-weight', 'bold')
-    .style('font-size', '30px')
+    .style('font-size', scoreFontSize)
     .style('fill', 'white')
     .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
     .text((d) => d.data.average)
@@ -315,7 +317,7 @@ const createCircularPlot = () => {
     .attr('text-anchor', 'middle')
     .attr('y', -8)
     .style('font-weight', 'bold')
-    .style('font-size', '18px')
+    .style('font-size', labelFontSize)
     .style('fill', textColor)
     .text('IEQ')
 
@@ -324,7 +326,7 @@ const createCircularPlot = () => {
     .attr('text-anchor', 'middle')
     .attr('y', 25)
     .style('font-weight', 'bold')
-    .style('font-size', '30px')
+    .style('font-size', scoreFontSize)
     .style('fill', textColor)
     .text(overallAverage)
 }
