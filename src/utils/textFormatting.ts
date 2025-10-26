@@ -40,17 +40,37 @@ export const formatWithUnicodeSubscripts = (field: string): string => {
     '.': '.' // Keep dots as-is
   }
 
+  const superscriptMap: Record<string, string> = {
+    '0': '⁰',
+    '1': '¹',
+    '2': '²',
+    '3': '³',
+    '4': '⁴',
+    '5': '⁵',
+    '6': '⁶',
+    '7': '⁷',
+    '8': '⁸',
+    '9': '⁹',
+    '.': '.' // Keep dots as-is
+  }
+
   let formatted = field
-  console.log('Formatting field:', field)
 
   // First handle LaTeX-style subscripts: CO_{2} -> CO₂
-  // We need to remove underscores within subscripts and the underscore before the braces
-  formatted = formatted.replace(/_?\{([^}]+)\}/g, (_match, subscriptContent) => {
-    // Remove underscores within subscript content
+  formatted = formatted.replace(/_{([^}]+)}/g, (_match, subscriptContent) => {
     const cleanedContent = subscriptContent.replace(/_/g, '')
     return cleanedContent
       .split('')
       .map((char: string) => subscriptMap[char] || char)
+      .join('')
+  })
+
+  // Then handle LaTeX-style superscripts: m^{3} -> m³
+  formatted = formatted.replace(/\^{([^}]+)}/g, (_match, superscriptContent) => {
+    const cleanedContent = superscriptContent.replace(/[\^_]/g, '')
+    return cleanedContent
+      .split('')
+      .map((char: string) => superscriptMap[char] || char)
       .join('')
   })
 
