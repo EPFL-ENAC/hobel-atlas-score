@@ -51,10 +51,6 @@ const updateCircularPlotBands = (value: number | null) => {
   }
 }
 
-const updateDataProperty = (value: 'value' | 'score') => {
-  dataProperty.value = value
-}
-
 // File upload handlers
 const handleDataChanged = (data: EnvironmentalData[] | null) => {
   csvData.value = data
@@ -74,21 +70,6 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 
     <div class="controls">
       <div class="control-group">
-        <div class="control-item">
-          <label>Variable:</label>
-          <q-option-group
-            :model-value="dataProperty"
-            :options="[
-              { label: 'Value', value: 'value' },
-              { label: 'Score', value: 'score' }
-            ]"
-            type="radio"
-            class="option-group"
-            inline
-            @update:model-value="updateDataProperty"
-          />
-        </div>
-
         <div class="control-item">
           <label>Height: {{ bandHeight }}</label>
           <q-slider

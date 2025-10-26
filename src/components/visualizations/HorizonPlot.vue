@@ -1,6 +1,20 @@
 <template>
   <div class="horizon-plot-container">
     <div class="controls-section">
+      <div class="control-item">
+        <label>Variable:</label>
+        <q-option-group
+          :model-value="dataProperty"
+          :options="[
+            { label: 'Value', value: 'value' },
+            { label: 'Score', value: 'score' }
+          ]"
+          type="radio"
+          class="option-group"
+          inline
+          @update:model-value="updateDataProperty"
+        />
+      </div>
       <q-btn
         @click="handleDownloadSVG"
         outline
@@ -27,10 +41,11 @@ import type { EnvironmentalData } from '../../composables/useHorizonChart'
 const props = defineProps<{
   bandHeight: number
   numBands: number
-  dataProperty: 'value' | 'score'
   customData?: EnvironmentalData[] | null
   colorSchemesComposable?: any
 }>()
+
+const dataProperty = ref<'value' | 'score'>('score')
 
 const chartContainer = ref<HTMLElement | null>(null)
 const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHeight } =
@@ -38,8 +53,12 @@ const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHe
 
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
-    downloadSVG(chartContainer.value, `horizon-plot-${props.dataProperty}.svg`)
+    downloadSVG(chartContainer.value, `horizon-plot-${dataProperty.value}.svg`)
   }
+}
+
+const updateDataProperty = (value: 'value' | 'score') => {
+  dataProperty.value = value
 }
 
 const createChart = () => {
@@ -152,7 +171,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
         createExpandedLineChart(
           svg,
           fieldData,
-          props.dataProperty,
+          dataProperty.value,
           globalX,
           yOffset,
           currentSize,
@@ -165,7 +184,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
         createHorizonBand(
           svg,
           fieldData,
-          props.dataProperty,
+          dataProperty.value,
           globalX,
           yOffset,
           currentSize,
@@ -309,7 +328,7 @@ watch(
   () => [
     props.bandHeight,
     props.numBands,
-    props.dataProperty,
+    dataProperty.value,
     props.customData,
     props.colorSchemesComposable?.categoryColorSchemes,
     props.colorSchemesComposable?.customColors
@@ -334,7 +353,7 @@ onMounted(() => {
 
 .controls-section {
   display: flex;
-  justify-content: end;
+  justify-content: space-around;
   align-items: center;
   margin-bottom: 20px;
   padding: 15px;
