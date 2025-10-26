@@ -1,13 +1,6 @@
 <template>
   <div class="horizon-plot-container">
     <div class="controls-section">
-      <q-option-group
-        v-model="seriesFilter"
-        :options="seriesFilterOptions"
-        color="primary"
-        inline
-        class="series-filter"
-      />
       <q-btn
         @click="handleDownloadSVG"
         outline
@@ -25,12 +18,7 @@ import { ref, onMounted, watch } from 'vue'
 import * as d3 from 'd3'
 import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
 import { useHorizonChart } from '../../composables/useHorizonChart'
-import {
-  parseCSVData,
-  downloadSVG,
-  sortCategoriesByOrder,
-  filterFirstSeriesOnly
-} from '../../utils/chartUtils'
+import { parseCSVData, downloadSVG, sortCategoriesByOrder } from '../../utils/chartUtils'
 import { createExpandedLineChart, type ChartDimensions } from '../../utils/expandedChart'
 import { createHorizonBand } from '../../utils/horizonBand'
 import type { EnvironmentalData } from '../../composables/useHorizonChart'
@@ -48,13 +36,6 @@ const chartContainer = ref<HTMLElement | null>(null)
 const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHeight } =
   useHorizonChart(props.colorSchemesComposable)
 
-// Series filter state
-const seriesFilter = ref<'all' | 'first'>('all')
-const seriesFilterOptions = [
-  { label: 'All series', value: 'all' },
-  { label: 'First series only', value: 'first' }
-]
-
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
     downloadSVG(chartContainer.value, `horizon-plot-${props.dataProperty}.svg`)
@@ -64,11 +45,6 @@ const handleDownloadSVG = () => {
 const createChart = () => {
   // Use custom data if available, otherwise use default data
   let data = props.customData || parseCSVData(atlasScoreData)
-
-  // Apply series filter if needed
-  if (seriesFilter.value === 'first') {
-    data = filterFirstSeriesOnly(data)
-  }
 
   createHorizonPlot(data)
 }
@@ -94,7 +70,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     marginBottom: 0,
     marginLeft: 30,
     marginRight: 15,
-    width: 928,
+    width: 1024,
     height: 0, // Will be calculated
     padding: 0
   }
@@ -237,6 +213,95 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     // Add more spacing between categories
     yOffset += 50
   })
+
+  // Add legend
+  createLegend(svg, dimensions, props.numBands)
+}
+
+// Create legend for the horizon plot
+const createLegend = (svg: any, dimensions: ChartDimensions, numBands: number) => {
+  const legendWidth = 200
+  const legendHeight = 80
+  const legendX = dimensions.width - dimensions.marginRight - legendWidth - 10
+  const legendY = dimensions.marginTop + 10
+
+  const legendGroup = svg
+    .append('g')
+    .attr('class', 'legend')
+    .attr('transform', `translate(${legendX}, ${legendY})`)
+
+  // Add legend background
+  legendGroup
+    .append('rect')
+    .attr('x', -10)
+    .attr('y', -5)
+    .attr('width', legendWidth + 20)
+    .attr('height', legendHeight + 15)
+    .attr('fill', 'rgba(255, 255, 255, 0.95)')
+    .attr('stroke', '#ccc')
+    .attr('stroke-width', 1)
+    .attr('rx', 5)
+
+  // Add legend title
+  legendGroup
+    .append('text')
+    .attr('x', legendWidth / 2)
+    .attr('y', 10)
+    .attr('text-anchor', 'middle')
+    .attr('font-weight', 'bold')
+    .attr('font-size', '12px')
+    .text('Horizon Bands')
+
+  // Create explanation text
+  legendGroup
+    .append('text')
+    .attr('x', legendWidth / 2)
+    .attr('y', 25)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '9px')
+    .attr('fill', '#666')
+    .text('Each band represents value ranges')
+
+  // Show band ranges
+  const bandWidth = legendWidth / numBands
+
+  for (let i = 0; i < numBands; i++) {
+    // Use a gradient from light to dark blue for the legend
+    const opacity = 0.3 + (i / (numBands - 1)) * 0.7
+    const color = `rgba(49, 130, 189, ${opacity})`
+
+    // Add color band
+    legendGroup
+      .append('rect')
+      .attr('x', i * bandWidth)
+      .attr('y', 35)
+      .attr('width', bandWidth)
+      .attr('height', 15)
+      .attr('fill', color)
+      .attr('stroke', 'white')
+      .attr('stroke-width', 0.5)
+
+    // Add percentage labels
+    if (i === 0 || i === numBands - 1) {
+      legendGroup
+        .append('text')
+        .attr('x', i === 0 ? 0 : legendWidth)
+        .attr('y', 65)
+        .attr('text-anchor', i === 0 ? 'start' : 'end')
+        .attr('font-size', '9px')
+        .text(`${i === 0 ? '0' : '100'}%`)
+    }
+  }
+
+  // Add color scheme note
+  legendGroup
+    .append('text')
+    .attr('x', legendWidth / 2)
+    .attr('y', 78)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '8px')
+    .attr('fill', '#888')
+    .text('Colors vary by category')
 }
 
 // Watch for prop changes and recreate the plot
@@ -247,8 +312,7 @@ watch(
     props.dataProperty,
     props.customData,
     props.colorSchemesComposable?.categoryColorSchemes,
-    props.colorSchemesComposable?.customColors,
-    seriesFilter.value
+    props.colorSchemesComposable?.customColors
   ],
   () => {
     createChart()
@@ -264,14 +328,13 @@ onMounted(() => {
 <style scoped>
 .horizon-plot-container {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
 }
 
 .controls-section {
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   align-items: center;
   margin-bottom: 20px;
   padding: 15px;
