@@ -64,7 +64,7 @@ export const formatWithUnicodeSubscripts = (field: string): string => {
   })
 
   // Handle remaining underscores (those not part of subscripts) and convert to uppercase
-  formatted = formatted.replace(/_/g, ' ').toUpperCase()
+  formatted = formatted.replace(/_/g, ' ')
 
   // Replace patterns like "CO 2" with "CO₂" (space-separated)
   formatted = formatted.replace(/\b([A-Z]+)\s+(\d+(?:\.\d+)?)\b/g, (_match, chemical, number) => {
