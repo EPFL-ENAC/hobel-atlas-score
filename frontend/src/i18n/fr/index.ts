@@ -1,0 +1,153 @@
+export default {
+  appTitle: 'Annotation de jeux de données',
+
+  import: 'Importer',
+  export: 'Exporter',
+  tutorial: 'Tutoriel',
+  about: 'À propos',
+
+  sidebarTitle: 'Images annotées',
+  noImages: 'Aucune image pour le moment',
+  imagesPerPage: 'Images par page',
+  markAsCompleted: 'Marquer comme terminé',
+  markAsIncomplete: 'Marquer comme non terminé',
+  completionMarkRemoved: "L'image n'est plus marquée comme terminée",
+  ensureNoUnsetDamage:
+    "Assurez-vous d'avoir défini un niveau de dégats pour toutes les annotations",
+  ensureAllBuildingsAnnotated: 'Assurez-vous que tous les bâtiments sont annotés',
+  annotateNew: 'Annoter nouvelle image',
+  noImageSelected: 'Aucune image sélectionnée',
+  noImageSelectedMessage:
+    'Utilisez la barre latérale pour ajouter une image et commencer à annoter.',
+
+  image: '0 image | 1 image | {n} images',
+  annotation: '0 annotation | 1 annotation | {n} annotations',
+
+  deleteImage: "Supprimer l'image",
+  deleteImageMessage:
+    'Êtes-vous sûr de vouloir supprimer cette image ? Cela supprimera également toutes les annotations liées à cette image. Cette action est irréversible.',
+  deleteImageSkipMessage: 'Ne plus demander durant cette session',
+  deleteImageFailed: "Échec de suppression de l'image",
+
+  noMoreImages: 'Aucune image supplémentaire disponible pour annotation.',
+  annotationsCopied: 'Annotations copiées depuis {filename}.',
+
+  skip: 'Passer',
+  tutorialTitle: 'Tutoriel',
+  tutorialSteps: [
+    'Cliquez sur "Annoter nouvelle image" dans la barre latérale pour obtenir une nouvelle image à annoter.',
+    'Cliquez sur "Ajouter annotation" ou appuyez sur la touche <span class="keybinding">N</span> pour ajouter une nouvelle annotation.',
+    "Cliquez pour commencer à dessiner un polygone autour des bâtiments et pour ajouter des points. Double-cliquez ou tapez <span class='keybinding'>Entrée</span> pour terminer.<br><b>Incluez les façades, et ne vous préocupez pas des parties en dehors de l'image.</b>",
+    'Cliquez pour définir le niveau de dégats, ou utilisez les touches <span class="keybinding">1</span> et <span class="keybinding">2</span>.<br><b>Plusieurs bâtiments partageant le même niveau de dégats peuvent être inclus dans un même polygone.</b>',
+    "Cliquez sur 'Montrer carte' pour afficher une carte de référence. Assurez-vous de l'orienter correctement.",
+    "Marquez comme terminé une fois que tous les bâtiments ont été annotés et les niveaux de dégats définis, ou s'il n'y a aucun bâtiment sur l'image.",
+  ],
+  next: 'Suivant',
+  finish: 'Terminer',
+
+  aboutTitle: 'À propos',
+  aboutJointEffort:
+    "Cette interface est le fruit d'un travail commun entre la Humanitarian OpenStreetMap Team (HOT), NAXA, et l'EPFL.",
+  aboutDevelopment: 'Le développement a été réalisé par {link}.',
+  aboutRepository: 'Dépôt : {link}',
+
+  addAnnotation: 'Ajouter annotation',
+  abort: 'Interrompre',
+  doubleClickOrEnter: 'Double-clic / Entrée',
+  damageLevel: 'Niveau de dégats',
+  damageLevel_unset: 'Non défini',
+  damageLevel_undamaged: 'Non endommagé',
+  damageLevel_damaged: 'Endommagé',
+  delete: 'Supprimer',
+  showReferenceMap: 'Montrer carte',
+  recenter: 'Recentrer',
+  hideReferenceMap: 'Cacher carte',
+  changeSource: 'Changer source',
+  referenceMapUnavailable: 'Carte de référence indisponible',
+  correspondingLocationUnknown: 'Emplacement associé inconnu',
+  captionDrawMode:
+    ' <span class="mousebinding">Clic</span> : démarrer nouvelle annotation et ajouter points. <span class="keybinding">Ctrl</span>+<span class="keybinding">Z</span> supprimer point. <span class="mousebinding">Double-clic</span>/<span class="keybinding">Entrée</span> : placer dernier point. <span class="mousebinding">Clic</span>+glisser : déplacer. <span class="keybinding">Échap</span> pour interrompre.',
+  captionSelectMoveMode:
+    '<span class="mousebinding">Clic</span> : sélectionner. <span class="mousebinding">Clic</span>+glisser : déplacer. <span class="keybinding">N</span> pour ajouter nouvelle annotation.',
+  captionSelected:
+    '<span class="keybinding">1</span>/<span class="keybinding">2</span> pour définir le niveau de dégats. <span class="keybinding">Suppr</span> pour supprimer l\'annotation sélectionnée.',
+  escKey: 'Échap',
+  deleteKey: 'Suppr',
+
+  // Login page
+  login: 'Connexion',
+  logout: 'Déconnexion',
+  emailLabel: 'Adresse e-mail',
+  emailRequired: "L'adresse e-mail est requise",
+  emailInvalid: 'Entrez une adresse e-mail valide',
+  fullNameLabel: 'Nom complet',
+  fullNameRequired: 'Le nom complet est requis',
+  codeLabel: 'Code',
+  codeRequired: 'Le code est requis',
+  welcomeMessage: 'Bienvenue, {name} !',
+  loginFailed: 'Échec de la connexion',
+  emailExistsNameMismatch: 'Un compte existe déjà avec cet e-mail. Veuillez saisir le nom correct.',
+
+  // Admin page
+  adminPageTitle: 'Tableau de bord',
+  usersTableTitle: 'Utilisateurs',
+  userName: 'Nom',
+  userEmail: 'E-mail',
+  userRole: 'Rôle',
+  userAccountCreated: 'Compte créé',
+  userLastAction: 'Dernière action',
+  lastActionNow: 'maintenant',
+  lastActionMinutesAgo: 'il y a {minutes}min',
+  lastActionHoursAgo: 'il y a {hours}h',
+  lastActionDaysAgo: 'il y a {days}j.',
+  never: 'Jamais',
+  annotatedImages: 'Images annotées',
+  nonReviewedImages: 'Images non-évaluées',
+  totalAnnotations: 'Annotations totales',
+  roleAnnotator: 'Annotateur',
+  roleReviewer: 'Évaluateur',
+  noUsersFound: 'Aucun utilisateur trouvé',
+  errorLoadingUsers: 'Erreur de chargement des utilisateurs',
+  refresh: 'Actualiser',
+  page: 'Page',
+  of: 'sur',
+  itemsPerPage: 'Éléments par page',
+  review: 'Évaluer',
+  toAnnotationPage: "Interface d'annotation",
+
+  // Review page
+  reviewPageTitle: 'Évaluation des annotations',
+  backToAdminPage: 'Page admin',
+  validate: 'Valider',
+  reject: 'Rejeter',
+  nextImage: 'Image suivante',
+  noMoreImagesToReview: 'Aucune image supplémentaire à évaluer.',
+
+  // 404 page
+  notFoundMessage: 'Oups, rien à voir ici...',
+  goHome: 'Accueil',
+
+  // Table header tooltips
+  tooltipImageName: "Nom de l'image",
+  tooltipAnnotationsCount: "Nombre d'annotations'image",
+  tooltipCompletionStatus: 'Statut de complétion',
+  tooltipValidationStatus: 'Statut de validation',
+
+  // Export dialog
+  exportAnnotations: 'Exporter les annotations',
+
+  // Annotation errors (map + store)
+  selectAnnotationToEnable: 'Sélectionnez une annotation pour activer',
+  errorLoadingImageTitle: "Erreur de chargement de l'image",
+  errorLoadingImageMessage:
+    "Impossible de charger l'image. Veuillez essayer de sélectionner une autre image.",
+  failedToAddAnnotation: "Échec de l'ajout de l'annotation",
+  failedToUpdateAnnotation: "Échec de la mise à jour de l'annotation",
+  failedToDeleteAnnotation: "Échec de la suppression de l'annotation",
+  failedToUpdateDamageLevel: 'Échec de la mise à jour du niveau de dégats',
+  failedToLoadAnnotations: 'Échec du chargement des annotations',
+  failedToAddImage: "Échec de l'ajout de l'image",
+  failedToRemoveImage: "Échec de la suppression de l'image",
+  failedToUpdateCompleted: "Échec de la mise à jour du statut de l'image",
+  failedToUpdateValidationStatus: "Échec de la mise à jour du statut de validation de l'image",
+};
