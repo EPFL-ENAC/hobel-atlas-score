@@ -13,11 +13,11 @@ env:
   IMAGE_NAME: ${{github.repository}}
 jobs:
   deploy:
-    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v3.0.6
+    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v3.0.7
     secrets:
       token: ${{ secrets.CD_TOKEN }}
     with:
       # Optional inputs can be passed here
-      org: epfl-tech4dev
-      repo: hosm
+      org: epfl-hobel
+      repo: atlas-score
       build_context: '["./backend", "./frontend"]' # Optional"
