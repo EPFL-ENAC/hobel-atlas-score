@@ -7,7 +7,7 @@
           :model-value="dataProperty"
           :options="[
             { label: 'Value', value: 'value' },
-            { label: 'Score', value: 'score' }
+            { label: 'Score', value: 'score' },
           ]"
           type="radio"
           class="option-group"
@@ -35,70 +35,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import * as d3 from 'd3'
-import atlasScoreData from '../../assets/atlas_score_example.csv?raw'
-import { useHorizonChart } from '../../composables/useHorizonChart'
+import { ref, onMounted, watch } from 'vue';
+import * as d3 from 'd3';
+import atlasScoreData from '../../assets/atlas_score_example.csv?raw';
+import { useHorizonChart } from '../../composables/useHorizonChart';
 import {
   parseCSVData,
   downloadSVG,
   sortCategoriesByOrder,
-  downloadPNG
-} from '../../utils/chartUtils'
-import { createExpandedLineChart, type ChartDimensions } from '../../utils/expandedChart'
-import { createHorizonBand } from '../../utils/horizonBand'
-import type { EnvironmentalData } from '../../composables/useHorizonChart'
+  downloadPNG,
+} from '../../utils/chartUtils';
+import { createExpandedLineChart, type ChartDimensions } from '../../utils/expandedChart';
+import { createHorizonBand } from '../../utils/horizonBand';
+import type { EnvironmentalData } from '../../composables/useHorizonChart';
+import type { ColorSchemesContext } from '../../composables/useColorSchemes';
 
 // Define props
 const props = defineProps<{
-  bandHeight: number
-  numBands: number
-  customData?: EnvironmentalData[] | null
-  colorSchemesComposable?: any
-}>()
+  bandHeight: number;
+  numBands: number;
+  customData?: EnvironmentalData[] | null;
+  colorSchemesComposable?: ColorSchemesContext;
+}>();
 
-const dataProperty = ref<'value' | 'score'>('score')
+const dataProperty = ref<'value' | 'score'>('score');
 
-const chartContainer = ref<HTMLElement | null>(null)
+const chartContainer = ref<HTMLElement | null>(null);
 const { expandedField, toggleFieldExpansion, getCategoryColors, calculateTotalHeight } =
-  useHorizonChart(props.colorSchemesComposable)
+  useHorizonChart(props.colorSchemesComposable);
 
 const handleDownloadSVG = () => {
   if (chartContainer.value) {
-    downloadSVG(chartContainer.value, `horizon-plot-${dataProperty.value}.svg`)
+    downloadSVG(chartContainer.value, `horizon-plot-${dataProperty.value}.svg`);
   }
-}
+};
 const handleDownloadPNG = () => {
   if (chartContainer.value) {
-    downloadPNG(chartContainer.value, `horizon-plot-${dataProperty.value}.png`)
+    downloadPNG(chartContainer.value, `horizon-plot-${dataProperty.value}.png`);
   }
-}
+};
 
 const updateDataProperty = (value: 'value' | 'score') => {
-  dataProperty.value = value
-}
+  dataProperty.value = value;
+};
 
 const createChart = () => {
   // Use custom data if available, otherwise use default data
-  let data = props.customData || parseCSVData(atlasScoreData)
+  const data = props.customData || parseCSVData(atlasScoreData);
 
-  createHorizonPlot(data)
-}
+  createHorizonPlot(data);
+};
 
 const handleToggle = (fieldKey: string) => {
-  toggleFieldExpansion(fieldKey, createChart)
-}
+  toggleFieldExpansion(fieldKey, createChart);
+};
 
 // Create horizon plot
 const createHorizonPlot = (data: EnvironmentalData[]) => {
-  if (!chartContainer.value) return
+  if (!chartContainer.value) return;
 
   // Clear previous chart
-  chartContainer.value.innerHTML = ''
+  chartContainer.value.innerHTML = '';
 
   // Group data by category first, then by field
-  const groupedByCategory = d3.group(data, (d) => d.category)
-  const categories = sortCategoriesByOrder(Array.from(groupedByCategory.keys()))
+  const groupedByCategory = d3.group(data, (d) => d.category);
+  const categories = sortCategoriesByOrder(Array.from(groupedByCategory.keys()));
 
   // Set dimensions and margins
   const dimensions: ChartDimensions = {
@@ -108,20 +109,20 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     marginRight: 15,
     width: 1024,
     height: 0, // Will be calculated
-    padding: 0
-  }
+    padding: 0,
+  };
 
-  const legendHeight = 100
+  const legendHeight = 100;
 
-  const expandedHeight = 200
+  const expandedHeight = 200;
 
   const totalHeight = calculateTotalHeight(
     categories,
     groupedByCategory,
     props.bandHeight,
-    expandedHeight
-  )
-  dimensions.height = totalHeight + dimensions.marginTop + dimensions.marginBottom
+    expandedHeight,
+  );
+  dimensions.height = totalHeight + dimensions.marginTop + dimensions.marginBottom;
 
   // Create SVG
   const svg = d3
@@ -132,38 +133,38 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
     .attr('viewBox', [0, 0, dimensions.width, dimensions.height + legendHeight])
     .attr(
       'style',
-      'max-width: 100%; height: auto; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;'
-    )
+      'max-width: 100%; height: auto; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;',
+    );
 
   // Create a global time scale using the extent of the entire dataset
-  const globalTimeExtent = d3.extent(data, (d) => d.time) as [Date, Date]
+  const globalTimeExtent = d3.extent(data, (d) => d.time) as [Date, Date];
   const globalX = d3
     .scaleTime()
     .domain(globalTimeExtent)
     .nice()
-    .range([0, dimensions.width - dimensions.marginLeft - dimensions.marginRight])
+    .range([0, dimensions.width - dimensions.marginLeft - dimensions.marginRight]);
 
-  let yOffset = dimensions.marginTop
-  let globalIndex = 0
+  let yOffset = dimensions.marginTop;
+  let globalIndex = 0;
 
   // Process each category
   categories.forEach((category, catIndex) => {
-    const categoryData = groupedByCategory.get(category) || []
-    const groupedByField = d3.group(categoryData, (d) => d.field)
-    const fields = Array.from(groupedByField.keys())
+    const categoryData = groupedByCategory.get(category) || [];
+    const groupedByField = d3.group(categoryData, (d) => d.field);
+    const fields = Array.from(groupedByField.keys());
 
     // Calculate the vertical center of this category's fields
-    let categoryHeight = 0
+    let categoryHeight = 0;
     fields.forEach((field) => {
-      const fieldKey = `${category}|${field}`
-      const isExpanded = expandedField.value === fieldKey
-      categoryHeight += isExpanded ? expandedHeight : props.bandHeight
-    })
+      const fieldKey = `${category}|${field}`;
+      const isExpanded = expandedField.value === fieldKey;
+      categoryHeight += isExpanded ? expandedHeight : props.bandHeight;
+    });
 
-    const categoryCenter = yOffset + categoryHeight / 2
+    const categoryCenter = yOffset + categoryHeight / 2;
 
     // Get color scheme for this category
-    const colors = getCategoryColors(category, props.numBands)
+    const colors = getCategoryColors(category, props.numBands);
 
     // Add category header on the left side, rotated 90 degrees
     svg
@@ -178,14 +179,14 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       .attr('stroke-width', 0.5)
       .attr('stroke-opacity', 0.7)
       .attr('paint-order', 'stroke')
-      .text(category)
+      .text(category);
 
     // Process each field within the category
     fields.forEach((field, fieldIndex) => {
-      const fieldData = groupedByField.get(field) || []
-      const fieldKey = `${category}|${field}`
-      const isExpanded = expandedField.value === fieldKey
-      const currentSize = isExpanded ? expandedHeight : props.bandHeight
+      const fieldData = groupedByField.get(field) || [];
+      const fieldKey = `${category}|${field}`;
+      const isExpanded = expandedField.value === fieldKey;
+      const currentSize = isExpanded ? expandedHeight : props.bandHeight;
 
       if (isExpanded) {
         createExpandedLineChart(
@@ -198,8 +199,8 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
           dimensions,
           field,
           fieldKey,
-          handleToggle
-        )
+          handleToggle,
+        );
       } else {
         createHorizonBand(
           svg,
@@ -214,8 +215,8 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
           field,
           fieldKey,
           globalIndex,
-          handleToggle
-        )
+          handleToggle,
+        );
       }
 
       // Add the horizontal axis (only for the first field of the first category)
@@ -227,13 +228,13 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
             d3
               .axisTop(globalX)
               .ticks(d3.timeDay.every(1))
-              .tickFormat(d3.timeFormat('%d/%m') as any)
-          )
+              .tickFormat(d3.timeFormat('%d/%m') as (d: unknown) => string),
+          ) as unknown as void;
       }
 
-      yOffset += currentSize
-      globalIndex++
-    })
+      yOffset += currentSize;
+      globalIndex++;
+    });
 
     // Add a border line between categories (except after the last category)
     if (catIndex < categories.length - 1) {
@@ -246,32 +247,32 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
         .attr('stroke', '#d1d5db') // Light gray color
         .attr('stroke-width', 5)
         // .attr('stroke-dasharray', '3,3') // Optional: make it dashed for subtlety
-        .attr('opacity', 0.7)
+        .attr('opacity', 0.7);
     }
 
     // Add more spacing between categories
-    yOffset += 50
-  })
+    yOffset += 50;
+  });
 
   // Add legend
-  createLegend(svg, dimensions, props.numBands, categories)
-}
+  createLegend(svg, dimensions, props.numBands, categories);
+};
 
 // Create legend for the horizon plot
 const createLegend = (
-  svg: any,
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   dimensions: ChartDimensions,
   numBands: number,
-  categories: string[]
+  categories: string[],
 ) => {
-  const legendWidth = dimensions.width - dimensions.marginLeft - dimensions.marginRight
-  const legendX = dimensions.marginLeft
-  const legendY = dimensions.height - dimensions.marginBottom - 20
+  const legendWidth = dimensions.width - dimensions.marginLeft - dimensions.marginRight;
+  const legendX = dimensions.marginLeft;
+  const legendY = dimensions.height - dimensions.marginBottom - 20;
 
   const legendGroup = svg
     .append('g')
     .attr('class', 'legend')
-    .attr('transform', `translate(${legendX}, ${legendY})`)
+    .attr('transform', `translate(${legendX}, ${legendY})`);
 
   // Add legend title
   legendGroup
@@ -281,7 +282,7 @@ const createLegend = (
     .attr('text-anchor', 'left')
     .attr('font-weight', 'bold')
     .attr('font-size', '12px')
-    .text('Legend')
+    .text('Legend');
 
   // Create explanation text
   legendGroup
@@ -291,24 +292,24 @@ const createLegend = (
     .attr('text-anchor', 'left')
     .attr('font-size', '9px')
     .attr('fill', '#666')
-    .text('Each band represents score ranges')
+    .text('Each band represents score ranges');
 
   // Show band ranges with spacing between categories
-  const spacing = 20 // Space between categories
-  const categoryWidth = (legendWidth - spacing * (categories.length - 1)) / categories.length
-  const bandWidth = categoryWidth / numBands
+  const spacing = 20; // Space between categories
+  const categoryWidth = (legendWidth - spacing * (categories.length - 1)) / categories.length;
+  const bandWidth = categoryWidth / numBands;
 
-  let xOffset = 0
+  let xOffset = 0;
 
   for (let y = 0; y < categories.length; y++) {
-    const category = categories[y] as string
-    const colors = getCategoryColors(category, numBands)
+    const category = categories[y] as string;
+    const colors = getCategoryColors(category, numBands);
 
     // Create a group for each category
     const categoryGroup = legendGroup
       .append('g')
       .attr('class', `legend-category-${y}`)
-      .attr('transform', `translate(${xOffset}, 0)`)
+      .attr('transform', `translate(${xOffset}, 0)`);
 
     // Add category title
     categoryGroup
@@ -319,9 +320,9 @@ const createLegend = (
       .attr('font-size', '10px')
       .attr('font-weight', 'bold')
       .attr('fill', '#333')
-      .text(category)
+      .text(category);
 
-    console.log(colors)
+    console.log(colors);
     for (let i = 0; i < numBands; i++) {
       // Add color band
       categoryGroup
@@ -330,9 +331,9 @@ const createLegend = (
         .attr('y', 55)
         .attr('width', bandWidth)
         .attr('height', 15)
-        .attr('fill', colors[i])
+        .attr('fill', colors[i] ?? '#ccc')
         .attr('stroke', 'white')
-        .attr('stroke-width', 0.5)
+        .attr('stroke-width', 0.5);
 
       // Add percentage labels
       if (i === 0 || i === numBands - 1) {
@@ -342,13 +343,13 @@ const createLegend = (
           .attr('y', 85)
           .attr('text-anchor', i === 0 ? 'start' : 'end')
           .attr('font-size', '9px')
-          .text(`${i === 0 ? '0' : '100'}%`)
+          .text(`${i === 0 ? '0' : '100'}%`);
       }
     }
 
-    xOffset += categoryWidth + spacing
+    xOffset += categoryWidth + spacing;
   }
-}
+};
 
 // Watch for prop changes and recreate the plot
 watch(
@@ -358,17 +359,17 @@ watch(
     dataProperty.value,
     props.customData,
     props.colorSchemesComposable?.categoryColorSchemes,
-    props.colorSchemesComposable?.customColors
+    props.colorSchemesComposable?.customColors,
   ],
   () => {
-    createChart()
+    createChart();
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 onMounted(() => {
-  createChart()
-})
+  createChart();
+});
 </script>
 
 <style scoped>

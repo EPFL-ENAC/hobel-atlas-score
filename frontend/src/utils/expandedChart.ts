@@ -1,45 +1,45 @@
-import * as d3 from 'd3'
-import type { EnvironmentalData } from '../composables/useHorizonChart'
-import { formatWithUnicodeSubscripts } from './textFormatting'
+import * as d3 from 'd3';
+import type { EnvironmentalData } from '../composables/useHorizonChart';
+import { formatWithUnicodeSubscripts } from './textFormatting';
 
 export interface ChartDimensions {
-  marginTop: number
-  marginBottom: number
-  marginLeft: number
-  marginRight: number
-  width: number
-  height: number
-  padding: number
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+  width: number;
+  height: number;
+  padding: number;
 }
 
 export const createExpandedLineChart = (
-  svg: any,
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   fieldData: EnvironmentalData[],
   plotProperty: 'value' | 'score',
-  x: any,
+  x: (date: Date) => number,
   yOffset: number,
   height: number,
   dimensions: ChartDimensions,
   field: string,
   fieldKey: string,
-  onToggle: (fieldKey: string) => void
+  onToggle: (fieldKey: string) => void,
 ) => {
-  const { marginLeft, marginRight, width } = dimensions
-  const g = svg.append('g').attr('transform', `translate(${marginLeft},${yOffset})`)
+  const { marginLeft, marginRight, width } = dimensions;
+  const g = svg.append('g').attr('transform', `translate(${marginLeft},${yOffset})`);
 
   // Create vertical scale for line chart
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(fieldData, (d) => d[plotProperty]) as number])
     .nice()
-    .range([height - 20, 20])
+    .range([height - 20, 20]);
 
   // Create line generator
   const line = d3
     .line<EnvironmentalData>()
     .defined((d) => !isNaN(d[plotProperty]))
     .x((d) => x(d.time))
-    .y((d) => y(d[plotProperty]))
+    .y((d) => y(d[plotProperty]));
 
   // Add background
   g.append('rect')
@@ -49,13 +49,13 @@ export const createExpandedLineChart = (
     .attr('height', height)
     .attr('fill', '#f8f9fa')
     .attr('stroke', '#dee2e6')
-    .attr('stroke-width', 1)
+    .attr('stroke-width', 1);
 
   // Add grid lines
-  const yAxis = d3.axisLeft(y).ticks(5)
+  const yAxis = d3.axisLeft(y).ticks(5);
   g.append('g')
     .call(yAxis.tickSize(-(width - marginLeft - marginRight)).tickFormat(() => ''))
-    .attr('stroke-opacity', 0.1)
+    .attr('stroke-opacity', 0.1);
 
   // Add the line
   g.append('path')
@@ -63,7 +63,7 @@ export const createExpandedLineChart = (
     .attr('fill', 'none')
     .attr('stroke', 'steelblue')
     .attr('stroke-width', 2)
-    .attr('d', line)
+    .attr('d', line);
 
   // Add dots
   g.selectAll('.dot')
@@ -74,10 +74,10 @@ export const createExpandedLineChart = (
     .attr('cx', (d: EnvironmentalData) => x(d.time))
     .attr('cy', (d: EnvironmentalData) => y(d[plotProperty]))
     .attr('r', 3)
-    .attr('fill', 'steelblue')
+    .attr('fill', 'steelblue');
 
   // Add Y axis
-  g.append('g').call(d3.axisLeft(y))
+  g.append('g').call(d3.axisLeft(y));
 
   // Add field label
   g.append('text')
@@ -86,7 +86,7 @@ export const createExpandedLineChart = (
     .attr('font-size', 14)
     .attr('font-weight', 'bold')
     .attr('fill', '#333')
-    .text(formatWithUnicodeSubscripts(field) + ' (EXPANDED - Click to collapse)')
+    .text(formatWithUnicodeSubscripts(field) + ' (EXPANDED - Click to collapse)');
 
   // Add clickable area to collapse
   g.append('rect')
@@ -96,5 +96,5 @@ export const createExpandedLineChart = (
     .attr('height', height)
     .attr('fill', 'transparent')
     .style('cursor', 'pointer')
-    .on('click', () => onToggle(fieldKey))
-}
+    .on('click', () => onToggle(fieldKey));
+};

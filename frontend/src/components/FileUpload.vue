@@ -39,65 +39,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { EnvironmentalData } from '../composables/useHorizonChart'
-import { parseCSVData } from '../utils/chartUtils'
-import CSVExplorer from './CSVExplorer.vue'
-import atlasScoreData from '../assets/atlas_score_example.csv?raw'
+import { ref, onMounted } from 'vue';
+import type { EnvironmentalData } from '../composables/useHorizonChart';
+import { parseCSVData } from '../utils/chartUtils';
+import CSVExplorer from './CSVExplorer.vue';
+import atlasScoreData from '../assets/atlas_score_example.csv?raw';
 
 // Emits
 const emit = defineEmits<{
-  dataChanged: [data: EnvironmentalData[] | null]
-  fileStatusChanged: [isCustom: boolean, fileName: string]
-}>()
+  dataChanged: [data: EnvironmentalData[] | null];
+  fileStatusChanged: [isCustom: boolean, fileName: string];
+}>();
 
 // Refs
-const fileInput = ref<HTMLInputElement | null>(null)
-const fileName = ref<string>('')
-const isUsingCustomData = ref<boolean>(false)
-const uploadedData = ref<EnvironmentalData[] | null>(null)
-const isDataPreviewExpanded = ref<boolean>(false)
+const fileInput = ref<HTMLInputElement | null>(null);
+const fileName = ref<string>('');
+const isUsingCustomData = ref<boolean>(false);
+const uploadedData = ref<EnvironmentalData[] | null>(null);
+const isDataPreviewExpanded = ref<boolean>(false);
 
 // Load default data on mount
 onMounted(() => {
-  uploadedData.value = parseCSVData(atlasScoreData)
-})
+  uploadedData.value = parseCSVData(atlasScoreData);
+});
 
 // Methods
 const triggerFileInput = () => {
-  fileInput.value?.click()
-}
+  fileInput.value?.click();
+};
 
 const handleFileChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
 
-  if (!file) return
+  if (!file) return;
 
   try {
-    const text = await file.text()
-    const parsedData = parseCSVData(text)
+    const text = await file.text();
+    const parsedData = parseCSVData(text);
 
     if (parsedData.length === 0) {
-      alert('No valid data found in the CSV file. Please check the format.')
-      return
+      alert('No valid data found in the CSV file. Please check the format.');
+      return;
     }
 
-    fileName.value = file.name
-    isUsingCustomData.value = true
-    uploadedData.value = parsedData
+    fileName.value = file.name;
+    isUsingCustomData.value = true;
+    uploadedData.value = parsedData;
 
-    emit('dataChanged', parsedData)
-    emit('fileStatusChanged', true, file.name)
+    emit('dataChanged', parsedData);
+    emit('fileStatusChanged', true, file.name);
   } catch (error) {
-    console.error('Error parsing CSV file:', error)
-    alert('Error parsing CSV file. Please check the format.')
+    console.error('Error parsing CSV file:', error);
+    alert('Error parsing CSV file. Please check the format.');
   }
-}
+};
 
 const toggleDataPreview = () => {
-  isDataPreviewExpanded.value = !isDataPreviewExpanded.value
-}
+  isDataPreviewExpanded.value = !isDataPreviewExpanded.value;
+};
 </script>
 
 <style scoped>

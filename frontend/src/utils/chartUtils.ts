@@ -1,21 +1,21 @@
-import type { EnvironmentalData } from '../composables/useHorizonChart'
+import type { EnvironmentalData } from '../composables/useHorizonChart';
 
 export const parseCSVData = (csvData: string): EnvironmentalData[] => {
-  const lines = csvData.trim().split('\n')
+  const lines = csvData.trim().split('\n');
   // Skip header line
   return lines
     .slice(1)
     .map((line) => {
-      const values = line.split(',')
+      const values = line.split(',');
       // Ensure we have enough values
-      if (values.length < 6) return null
+      if (values.length < 6) return null;
 
-      const id = parseInt(values[0] || '0')
-      const timeStr = values[1] || ''
-      const category = values[2] || ''
-      const field = values[3] || ''
-      const value = parseFloat(values[4] || '0')
-      const score = parseFloat(values[5] || '0')
+      const id = parseInt(values[0] || '0');
+      const timeStr = values[1] || '';
+      const category = values[2] || '';
+      const field = values[3] || '';
+      const value = parseFloat(values[4] || '0');
+      const score = parseFloat(values[5] || '0');
 
       // Validate parsed values
       //   if (isNaN(id) || !timeStr || isNaN(value) || isNaN(score)) return null
@@ -26,183 +26,183 @@ export const parseCSVData = (csvData: string): EnvironmentalData[] => {
         category,
         field,
         value,
-        score
-      }
+        score,
+      };
     })
-    .filter((item): item is EnvironmentalData => item !== null)
-}
+    .filter((item): item is EnvironmentalData => item !== null);
+};
 
 export const downloadSVG = (container: HTMLElement, filename: string) => {
-  const svgElement = container.querySelector('svg')
-  if (!svgElement) return
+  const svgElement = container.querySelector('svg');
+  if (!svgElement) return;
 
   // Serialize the SVG to a string
-  const serializer = new XMLSerializer()
-  let svgString = serializer.serializeToString(svgElement)
+  const serializer = new XMLSerializer();
+  let svgString = serializer.serializeToString(svgElement);
 
   // Add namespaces if they're missing
   if (!svgString.includes('xmlns')) {
-    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
   }
   if (!svgString.includes('xmlns:xlink')) {
-    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
   }
 
   // Create a blob from the SVG string
-  const blob = new Blob([svgString], { type: 'image/svg+xml' })
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
 
   // Create a download link
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
 
   // Trigger the download
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
   // Clean up the URL object
-  URL.revokeObjectURL(url)
-}
+  URL.revokeObjectURL(url);
+};
 
 export const downloadPNG = (container: HTMLElement, filename: string, dpi: number = 300) => {
-  const svgElement = container.querySelector('svg')
-  if (!svgElement) return
+  const svgElement = container.querySelector('svg');
+  if (!svgElement) return;
 
   // Get original SVG dimensions
-  const bbox = svgElement.getBoundingClientRect()
-  const width = bbox.width
-  const height = bbox.height
+  const bbox = svgElement.getBoundingClientRect();
+  const width = bbox.width;
+  const height = bbox.height;
 
   // Calculate scale factor for DPI (72 DPI is the default screen resolution)
-  const scale = dpi / 72
+  const scale = dpi / 72;
 
   // Serialize the SVG
-  const serializer = new XMLSerializer()
-  let svgString = serializer.serializeToString(svgElement)
+  const serializer = new XMLSerializer();
+  let svgString = serializer.serializeToString(svgElement);
 
   // Add namespaces if missing
   if (!svgString.includes('xmlns')) {
-    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+    svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
   }
   if (!svgString.includes('xmlns:xlink')) {
-    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+    svgString = svgString.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
   }
 
   // Create a blob and object URL
-  const blob = new Blob([svgString], { type: 'image/svg+xml' })
-  const url = URL.createObjectURL(blob)
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
 
   // Create an image element
-  const img = new Image()
+  const img = new Image();
   img.onload = () => {
     // Create canvas with scaled dimensions
-    const canvas = document.createElement('canvas')
-    canvas.width = width * scale
-    canvas.height = height * scale
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     // Scale the context to achieve higher DPI
-    ctx.scale(scale, scale)
+    ctx.scale(scale, scale);
 
     // Draw the image
-    ctx.drawImage(img, 0, 0)
+    ctx.drawImage(img, 0, 0);
 
     // Convert to PNG and download
     canvas.toBlob((pngBlob) => {
-      if (!pngBlob) return
+      if (!pngBlob) return;
 
-      const pngUrl = URL.createObjectURL(pngBlob)
-      const link = document.createElement('a')
-      link.href = pngUrl
-      link.download = filename.replace(/\.svg$/, '.png')
+      const pngUrl = URL.createObjectURL(pngBlob);
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = filename.replace(/\.svg$/, '.png');
 
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       // Clean up
-      URL.revokeObjectURL(pngUrl)
-      URL.revokeObjectURL(url)
-    }, 'image/png')
-  }
+      URL.revokeObjectURL(pngUrl);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
 
-  img.src = url
-}
+  img.src = url;
+};
 
 export const sortCategoriesByOrder = (categories: string[]): string[] => {
-  const categoryOrder = ['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics']
+  const categoryOrder = ['Air quality', 'Thermal comfort', 'Lighting', 'Acoustics'];
 
   return categories.sort((a, b) => {
-    const indexA = categoryOrder.indexOf(a)
-    const indexB = categoryOrder.indexOf(b)
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
 
     // If both categories are in our custom order, sort according to that order
     if (indexA !== -1 && indexB !== -1) {
-      return indexA - indexB
+      return indexA - indexB;
     }
 
     // If only one category is in our custom order, it comes first
     if (indexA !== -1) {
-      return -1
+      return -1;
     }
     if (indexB !== -1) {
-      return 1
+      return 1;
     }
 
     // If neither category is in our custom order, maintain natural order
-    return 0
-  })
-}
+    return 0;
+  });
+};
 
 export const filterFirstSeriesOnly = (data: EnvironmentalData[]): EnvironmentalData[] => {
   // Group by category and field combination
-  const groups = new Map<string, EnvironmentalData[]>()
+  const groups = new Map<string, EnvironmentalData[]>();
 
   data.forEach((item) => {
-    const key = `${item.category}|${item.field}`
+    const key = `${item.category}|${item.field}`;
     if (!groups.has(key)) {
-      groups.set(key, [])
+      groups.set(key, []);
     }
-    groups.get(key)!.push(item)
-  })
+    groups.get(key)!.push(item);
+  });
 
   // For each group, find the first continuous series based on ID
-  const filteredData: EnvironmentalData[] = []
+  const filteredData: EnvironmentalData[] = [];
 
   groups.forEach((groupData) => {
-    if (groupData.length === 0) return
+    if (groupData.length === 0) return;
 
     // Sort by ID to identify series breaks
-    const sortedData = groupData.sort((a, b) => a.id - b.id)
+    const sortedData = groupData.sort((a, b) => a.id - b.id);
 
     // Find the first continuous series
-    const firstItem = sortedData[0]
-    if (!firstItem) return
+    const firstItem = sortedData[0];
+    if (!firstItem) return;
 
-    const firstSeries: EnvironmentalData[] = [firstItem]
-    let lastId = firstItem.id
+    const firstSeries: EnvironmentalData[] = [firstItem];
+    let lastId = firstItem.id;
 
     for (let i = 1; i < sortedData.length; i++) {
-      const currentItem = sortedData[i]
-      if (!currentItem) continue
+      const currentItem = sortedData[i];
+      if (!currentItem) continue;
 
-      const currentId = currentItem.id
+      const currentId = currentItem.id;
       // If ID is consecutive, it's part of the same series
       if (currentId === lastId + 1) {
-        firstSeries.push(currentItem)
-        lastId = currentId
+        firstSeries.push(currentItem);
+        lastId = currentId;
       } else {
         // Found a gap, stop here as we only want the first series
-        break
+        break;
       }
     }
 
-    filteredData.push(...firstSeries)
-  })
+    filteredData.push(...firstSeries);
+  });
 
-  return filteredData
-}
+  return filteredData;
+};

@@ -55,7 +55,7 @@
               'Thermal comfort',
               'Lighting',
               'Acoustics',
-              'Overall IEQ'
+              'Overall IEQ',
             ] as const"
             :key="category"
           >
@@ -139,27 +139,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import HorizonPlot from 'components/visualizations/HorizonPlot.vue'
-import CircularCategoryPlot from 'components/visualizations/CircularCategoryPlot.vue'
-import FileUpload from 'components/FileUpload.vue'
-import ColorSchemePreview from 'components/ColorSchemePreview.vue'
-import type { EnvironmentalData } from '../composables/useHorizonChart'
-import { useColorSchemes, availableSchemes } from '../composables/useColorSchemes'
+import { ref } from 'vue';
+import HorizonPlot from 'components/visualizations/HorizonPlot.vue';
+import CircularCategoryPlot from 'components/visualizations/CircularCategoryPlot.vue';
+import FileUpload from 'components/FileUpload.vue';
+import ColorSchemePreview from 'components/ColorSchemePreview.vue';
+import type { EnvironmentalData } from '../composables/useHorizonChart';
+import { useColorSchemes, availableSchemes } from '../composables/useColorSchemes';
 
 // Reactive variables for controlling the plots
-const bandHeight = ref<number>(60)
-const numBands = ref<number>(3)
-const circularPlotBands = ref<number>(4)
-const dataProperty = ref<'value' | 'score'>('score')
+const bandHeight = ref<number>(60);
+const numBands = ref<number>(3);
+const circularPlotBands = ref<number>(4);
+const dataProperty = ref<'value' | 'score'>('score');
 
 // Data management
-const csvData = ref<EnvironmentalData[] | null>(null)
+const csvData = ref<EnvironmentalData[] | null>(null);
 
 // Color scheme management
-const colorSchemesComposable = useColorSchemes()
+const colorSchemesComposable = useColorSchemes();
 const { categoryColorSchemes, customColors, updateCategoryColorScheme, updateCustomColor } =
-  colorSchemesComposable
+  colorSchemesComposable;
 
 // Helper function to get scheme info by value
 const getSchemeInfo = (value: string) => {
@@ -167,38 +167,39 @@ const getSchemeInfo = (value: string) => {
     availableSchemes.find((s) => s.value === value) || {
       label: 'Blues',
       value: 'schemeBlues',
-      schemeName: 'schemeBlues'
+      schemeName: 'schemeBlues',
     }
-  )
-}
+  );
+};
 
 // Functions to update the plot parameters
 const updateBandHeight = (value: number | null) => {
   if (value !== null) {
-    bandHeight.value = value
+    bandHeight.value = value;
   }
-}
+};
 
 const updateNumBands = (value: number | null) => {
   if (value !== null) {
-    numBands.value = value
+    numBands.value = value;
   }
-}
+};
 
 const updateCircularPlotBands = (value: number | null) => {
   if (value !== null) {
-    circularPlotBands.value = value
+    circularPlotBands.value = value;
   }
-}
+};
 
 // File upload handlers
 const handleDataChanged = (data: EnvironmentalData[] | null) => {
-  csvData.value = data
-}
+  csvData.value = data;
+};
 
 const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
-  // We can use these values if needed for additional UI feedback
-}
+  void _isCustom;
+  void _fileName;
+};
 </script>
 
 <style scoped>
