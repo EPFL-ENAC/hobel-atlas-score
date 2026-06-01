@@ -112,7 +112,7 @@ const colors = computed(() => {
 }
 
 .color-scheme-preview:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: rgba(var(--q-primary-rgb), 0.12);
 }
 
 .color-bar {
@@ -131,7 +131,7 @@ const colors = computed(() => {
 
 .scheme-label {
   font-size: 0.9em;
-  color: #424242;
+  color: currentColor;
   font-weight: 500;
   white-space: nowrap;
   flex: 1;

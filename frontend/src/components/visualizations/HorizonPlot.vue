@@ -175,10 +175,7 @@ const createHorizonPlot = (data: EnvironmentalData[]) => {
       .attr('font-weight', 'bold')
       .attr('text-anchor', 'middle')
       .attr('transform', `rotate(-90, 10, ${categoryCenter})`)
-      .attr('stroke', 'white')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-opacity', 0.7)
-      .attr('paint-order', 'stroke')
+      .attr('fill', 'currentColor')
       .text(category);
 
     // Process each field within the category
@@ -282,6 +279,7 @@ const createLegend = (
     .attr('text-anchor', 'left')
     .attr('font-weight', 'bold')
     .attr('font-size', '12px')
+    .attr('fill', 'currentColor')
     .text('Legend');
 
   // Create explanation text
@@ -291,7 +289,8 @@ const createLegend = (
     .attr('y', 30)
     .attr('text-anchor', 'left')
     .attr('font-size', '9px')
-    .attr('fill', '#666')
+    .attr('fill', 'currentColor')
+    .attr('opacity', 0.7)
     .text('Each band represents score ranges');
 
   // Show band ranges with spacing between categories
@@ -319,7 +318,7 @@ const createLegend = (
       .attr('text-anchor', 'middle')
       .attr('font-size', '10px')
       .attr('font-weight', 'bold')
-      .attr('fill', '#333')
+      .attr('fill', 'currentColor')
       .text(category);
 
     console.log(colors);
@@ -343,6 +342,7 @@ const createLegend = (
           .attr('y', 85)
           .attr('text-anchor', i === 0 ? 'start' : 'end')
           .attr('font-size', '9px')
+          .attr('fill', 'currentColor')
           .text(`${i === 0 ? '0' : '100'}%`);
       }
     }
@@ -404,5 +404,9 @@ onMounted(() => {
 .chart-container svg {
   display: block;
   margin: 0 auto;
+}
+
+.chart-container :deep(.tick text) {
+  fill: currentColor;
 }
 </style>

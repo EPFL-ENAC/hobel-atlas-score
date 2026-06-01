@@ -241,13 +241,13 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 .color-controls {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
 }
 
 .color-controls h6 {
   margin: 0 0 15px 0;
   font-weight: bold;
-  color: #333;
+  color: currentColor;
 }
 
 .color-scheme-grid {
@@ -265,7 +265,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 .category-color-control label {
   font-weight: 500;
   font-size: 0.9em;
-  color: #555;
+  color: currentColor;
 }
 
 .custom-color-picker {
@@ -274,14 +274,14 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
   gap: 10px;
   margin-top: 8px;
   padding: 8px;
-  background-color: #f5f5f5;
+  background-color: rgba(128, 128, 128, 0.15);
   border-radius: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid currentColor;
 }
 
 .custom-color-label {
   font-size: 0.8em;
-  color: #666;
+  color: currentColor;
   margin: 0;
 }
 
@@ -319,7 +319,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 }
 
 .scheme-option:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: rgba(var(--q-primary-rgb), 0.12);
 }
 
 .scheme-option .q-item__section {
@@ -334,7 +334,7 @@ const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
 .visualization-section h4 {
   text-align: center;
   margin-bottom: 20px;
-  color: #333;
+  color: currentColor;
   font-size: 1.2em;
 }
 
