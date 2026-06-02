@@ -9,6 +9,7 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 from pydantic import BaseModel
 
 from api.config import config
+from views.data import router as data_router
 
 
 basicConfig(level=INFO)
@@ -57,8 +58,8 @@ async def get_health() -> HealthCheck:
     return HealthCheck(status="OK")
 
 
-# app.include_router(
-#     files_router,
-#     prefix="/files",
-#     tags=["Files"],
-# )
+app.include_router(
+    data_router,
+    prefix="/data",
+    tags=["Data"],
+)

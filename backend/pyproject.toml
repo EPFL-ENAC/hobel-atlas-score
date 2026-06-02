@@ -6,14 +6,17 @@ authors = [
     { name = "Son Pham-Ba", email = "son.phamba@epfl.ch" },
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.11,<3.15"
 
 dependencies = [
     "asyncssh>=2.22.0",
     "cachetools>=6.2.4",
     "fastapi>=0.128.0",
     "fastapi-cache2>=0.2.2",
+    "hobel-inperso-ieq",
     "jinja2>=3.1.6",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.3",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "python-multipart>=0.0.21",
@@ -39,3 +42,6 @@ skip = 'uv.lock'
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.uv.sources]
+hobel-inperso-ieq = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git", rev = "cd4c4f3" }
