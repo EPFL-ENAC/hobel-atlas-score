@@ -1,6 +1,7 @@
 import pytest
+from fastapi import HTTPException
 
-from api.services.data import get_field_name_and_category
+from api.services.data import get_field_name, get_category
 
 
 @pytest.mark.parametrize(
@@ -86,8 +87,11 @@ from api.services.data import get_field_name_and_category
     ],
 )
 def test_get_field_name(raw_field_name, expected):
-    result = get_field_name_and_category(raw_field_name)
     if expected is None:
-        assert result[0] is None and result[1] is None
+        with pytest.raises(HTTPException):
+            field = get_field_name(raw_field_name)
     else:
-        assert result == expected
+        field = get_field_name(raw_field_name)
+        category = get_category(field)
+
+        assert (field, category) == expected
