@@ -3,6 +3,9 @@ from functools import cache
 
 import inperso
 import pandas as pd
+from fastapi import HTTPException
+from inperso.atlas_index.preprocessing import compute_sla, convert_units
+from inperso.atlas_index.scores import compute_scores
 
 from api.models.data import Category, Field
 
@@ -119,23 +122,87 @@ def _get_compiled_patterns() -> dict[Field, list[re.Pattern]]:
 
 
 def concat_scores(df: pd.DataFrame) -> pd.DataFrame:
+    fields_map, raw_fields_map = get_fields_maps(df)
+
+    df["time"] = pd.to_datetime(df["time"])
+    df["field"] = df["field"].apply(lambda x: fields_map[x])
+    df["brand"] = df["field"].apply(lambda x: get_brand(x))
+    df["device"] = ""
+
+    df = convert_units(df)
+    df = compute_light_percent(df)
+    df = compute_sla(df)
+    df = compute_scores(df)
+
+    df["category"] = df["field"].apply(lambda x: get_category(x))
+    df["field"] = df["field"].apply(lambda x: raw_fields_map[x])
+    df.drop(columns=["unit_number"], inplace=True)
+
     return df
 
 
+def compute_light_percent(df: pd.DataFrame) -> pd.DataFrame:
+    day_start_hour = inperso.config.atlas_index["sla"]["day_start_hour"]
+    night_start_hour = inperso.config.atlas_index["sla"]["night_start_hour"]
+    hour = df["time"].dt.hour
+    is_day = (hour >= day_start_hour) & (hour < night_start_hour)
+    is_light_percent = df["field"] == "light_percent"
+
+    df.loc[is_day & is_light_percent, "field"] = "light_percent_day"
+    df.loc[~is_day & is_light_percent, "field"] = "light_percent_night"
+
+    return df
+
+
+def get_fields_maps(df: pd.DataFrame) -> tuple[dict[str, Field], dict[Field, str]]:
+    fields_map = {}
+    raw_fields_map = {}
+
+    for raw_field in df["field"].unique():
+        field = get_field_name(raw_field)
+        fields_map[raw_field] = field
+
+        for field_suffixed in [field, field + "_day", field + "_night"]:
+            raw_fields_map[field_suffixed] = raw_field
+
+    return fields_map, raw_fields_map
+
+
 @cache
-def get_field_name_and_category(
-    raw_field_name: str,
-) -> tuple[Field | None, Category | None]:
+def get_field_name(
+    raw_field: str,
+) -> Field:
     for field, compiled_regexes in _get_compiled_patterns().items():
         for regex in compiled_regexes:
-            if regex.search(raw_field_name):
-                return field, _get_field_to_category()[field]
+            if regex.search(raw_field):
+                return field
 
-    return None, None
+    raise HTTPException(status_code=400, detail=f"Unrecognized field name: {raw_field}")
 
 
-def compute_score(
-    value: float,
-    field: Field,
-) -> float:
-    return 0
+@cache
+def get_category(
+    field: Field | None,
+) -> Category | None:
+    if field is None:
+        return None
+
+    if field.endswith("_day") or field.endswith("_night"):
+        field = field.rsplit("_", 1)[0]  # type: ignore
+
+    return _get_field_to_category().get(field, None)  # type: ignore
+
+
+@cache
+def get_brand(
+    field: Field | None,
+) -> str | None:
+    if field is None:
+        return None
+
+    for brand in inperso.config.atlas_index["fields"]:
+        for field_suffixed in [field, field + "_day", field + "_night"]:
+            if field_suffixed in inperso.config.atlas_index["fields"][brand]:
+                return brand
+
+    return None
