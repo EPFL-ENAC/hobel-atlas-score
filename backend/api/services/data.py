@@ -86,9 +86,21 @@ patterns: dict[Field, list[str]] = {
         "acoustic",
     ],
 }
+field_variants: dict[Field, list[str]] = {
+    "light_percent": ["light_percent_day", "light_percent_night"],
+    "sla": [
+        "sla_day",
+        "sla_night",
+    ],
+    "temperature": [
+        "temperature_cooling_nat",
+        "temperature_cooling_mec",
+        "temperature_heating",
+    ],
+}
 category_names = {
     "iaq": "Air quality",
-    "thermal": "Thermal Comfort",
+    "thermal": "Thermal comfort",
     "lux": "Lighting",
     "noise": "Acoustics",
 }
@@ -132,9 +144,10 @@ def concat_scores(df: pd.DataFrame) -> pd.DataFrame:
     df = convert_units(df)
     df = compute_light_percent(df)
     df = compute_sla(df)
-    df = compute_scores(df)
+    df = compute_scores(df, keep_values=True)
 
     df["category"] = df["field"].apply(lambda x: get_category(x))
+    df["category"] = df["category"].apply(lambda x: category_names[x])
     df["field"] = df["field"].apply(lambda x: raw_fields_map[x])
     df.drop(columns=["unit_number"], inplace=True)
 
@@ -162,8 +175,11 @@ def get_fields_maps(df: pd.DataFrame) -> tuple[dict[str, Field], dict[Field, str
         field = get_field_name(raw_field)
         fields_map[raw_field] = field
 
-        for field_suffixed in [field, field + "_day", field + "_night"]:
-            raw_fields_map[field_suffixed] = raw_field
+        if field in field_variants:
+            for field_variant in field_variants[field]:
+                raw_fields_map[field_variant] = raw_field
+        else:
+            raw_fields_map[field] = raw_field
 
     return fields_map, raw_fields_map
 
@@ -187,8 +203,10 @@ def get_category(
     if field is None:
         return None
 
-    if field.endswith("_day") or field.endswith("_night"):
-        field = field.rsplit("_", 1)[0]  # type: ignore
+    for field_base, variants in field_variants.items():
+        if field in variants:
+            field = field_base
+            break
 
     return _get_field_to_category().get(field, None)  # type: ignore
 
@@ -201,8 +219,12 @@ def get_brand(
         return None
 
     for brand in inperso.config.atlas_index["fields"]:
-        for field_suffixed in [field, field + "_day", field + "_night"]:
-            if field_suffixed in inperso.config.atlas_index["fields"][brand]:
-                return brand
+        if field in field_variants:
+            for variant in field_variants[field]:
+                if variant in inperso.config.atlas_index["fields"][brand]:
+                    return brand
+
+        if field in inperso.config.atlas_index["fields"][brand]:
+            return brand
 
     return None

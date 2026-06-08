@@ -163,7 +163,9 @@ export const useColorSchemes = () => {
   // Function to get colors for a category with specified number of bands
   const getCategoryColors = (category: string, bands: number): string[] => {
     const schemeName =
-      categoryColorSchemes.value[category as keyof typeof categoryColorSchemes.value];
+      categoryColorSchemes.value[category as keyof typeof categoryColorSchemes.value] ||
+      defaultSchemes[category as keyof typeof defaultSchemes] ||
+      'schemeBlues'; // Fallback for unknown categories
 
     // For custom schemes, we don't need to add extra colors and slice
     if (schemeName === 'custom') {
