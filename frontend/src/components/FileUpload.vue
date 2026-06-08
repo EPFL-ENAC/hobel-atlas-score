@@ -18,6 +18,10 @@
         class="upload-btn"
       />
 
+      <q-btn @click="showFormatInfo = true" flat dense round icon="info" color="primary" size="md">
+        <q-tooltip class="text-caption"> File format info </q-tooltip>
+      </q-btn>
+
       <div v-if="isUsingCustomData" class="file-info">
         <span class="filename">{{ fileName }}</span>
       </div>
@@ -35,6 +39,9 @@
 
     <!-- CSV Explorer -->
     <CSVExplorer v-if="isDataPreviewExpanded" :data="uploadedData" />
+
+    <!-- File Format Info Dialog -->
+    <FileFormatInfoDialog v-model="showFormatInfo" />
   </div>
 </template>
 
@@ -44,6 +51,7 @@ import type { EnvironmentalData } from '../composables/useHorizonChart'
 import { parseCSVData } from '../utils/chartUtils'
 import { baseUrl } from '../boot/api'
 import CSVExplorer from './CSVExplorer.vue'
+import FileFormatInfoDialog from './FileFormatInfoDialog.vue'
 import atlasScoreData from '../assets/atlas_score_example.csv?raw'
 
 // Emits
@@ -58,6 +66,7 @@ const fileName = ref<string>('')
 const isUsingCustomData = ref<boolean>(false)
 const uploadedData = ref<EnvironmentalData[] | null>(null)
 const isDataPreviewExpanded = ref<boolean>(false)
+const showFormatInfo = ref<boolean>(false)
 
 // Load default data on mount
 onMounted(() => {
