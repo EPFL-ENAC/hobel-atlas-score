@@ -43,7 +43,8 @@ async def score_file(
                 detail="Invalid file. Supported formats: CSV (comma, semicolon, or space-separated), xlsx.",
             )
 
-    df = concat_scores(df)
+    if "score" not in df.columns:
+        df = concat_scores(df)
 
     stream = io.StringIO()
     df.to_csv(stream, index=False)

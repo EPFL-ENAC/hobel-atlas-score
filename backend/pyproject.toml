@@ -44,4 +44,4 @@ skip = 'uv.lock'
 asyncio_mode = "auto"
 
 [tool.uv.sources]
-hobel-inperso-ieq = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git", rev = "cd4c4f3" }
+hobel-inperso-ieq = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git" }

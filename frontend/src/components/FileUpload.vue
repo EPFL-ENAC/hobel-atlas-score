@@ -5,7 +5,7 @@
       <input
         ref="fileInput"
         type="file"
-        accept=".csv"
+        accept=".csv,.xlsx"
         @change="handleFileChange"
         class="file-input"
       />
@@ -42,6 +42,7 @@
 import { ref, onMounted } from 'vue';
 import type { EnvironmentalData } from '../composables/useHorizonChart';
 import { parseCSVData } from '../utils/chartUtils';
+import { baseUrl } from '../boot/api';
 import CSVExplorer from './CSVExplorer.vue';
 import atlasScoreData from '../assets/atlas_score_example.csv?raw';
 
@@ -75,11 +76,24 @@ const handleFileChange = async (event: Event) => {
   if (!file) return;
 
   try {
-    const text = await file.text();
-    const parsedData = parseCSVData(text);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${baseUrl}/data/score`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Server error: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const parsedData = parseCSVData(csvText);
 
     if (parsedData.length === 0) {
-      alert('No valid data found in the CSV file. Please check the format.');
+      alert('No valid data found in the response. Please check the format.');
       return;
     }
 
@@ -90,8 +104,8 @@ const handleFileChange = async (event: Event) => {
     emit('dataChanged', parsedData);
     emit('fileStatusChanged', true, file.name);
   } catch (error) {
-    console.error('Error parsing CSV file:', error);
-    alert('Error parsing CSV file. Please check the format.');
+    console.error('Error processing file:', error);
+    alert(`Error processing file: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

@@ -4,7 +4,6 @@ import type { ColorSchemesContext } from './useColorSchemes';
 import { useColorSchemes } from './useColorSchemes';
 
 export interface EnvironmentalData {
-  id: number;
   time: Date;
   category: string;
   field: string;

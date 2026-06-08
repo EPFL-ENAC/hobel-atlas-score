@@ -21,7 +21,7 @@
       <q-table
         :rows="filteredData"
         :columns="columns"
-        row-key="id"
+        row-key="_rowKey"
         :filter="searchText"
         flat
         bordered
@@ -66,18 +66,11 @@ const props = defineProps<{
 
 // State
 const searchText = ref('');
-const sortColumn = ref<keyof EnvironmentalData>('id');
+const sortColumn = ref<keyof EnvironmentalData>('time');
 const sortDirection = ref<'asc' | 'desc'>('asc');
 
 // Column configuration
 const columns: QTableColumn[] = [
-  {
-    name: 'id',
-    label: 'ID',
-    field: 'id',
-    align: 'left',
-    sortable: true,
-  },
   {
     name: 'time',
     label: 'Time',
@@ -133,14 +126,13 @@ const formatNumber = (num: number): string => {
 const filteredData = computed(() => {
   if (!props.data) return [];
 
-  let result = [...props.data];
+  let result = [...props.data].map((d, i) => ({ ...d, _rowKey: i }));
 
   // Apply search filter
   if (searchText.value && searchText.value.trim()) {
     const search = searchText.value.toLowerCase();
     result = result.filter((row) => {
       return (
-        row.id.toString().includes(search) ||
         row.category.toLowerCase().includes(search) ||
         row.field.toLowerCase().includes(search) ||
         row.value.toString().includes(search) ||
