@@ -55,19 +55,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import type { EnvironmentalData } from '../composables/useHorizonChart';
-import type { QTableColumn } from 'quasar';
+import { ref, computed, watch } from 'vue'
+import type { EnvironmentalData } from '../composables/useHorizonChart'
+import type { QTableColumn } from 'quasar'
 
 // Props
 const props = defineProps<{
-  data: EnvironmentalData[] | null;
-}>();
+  data: EnvironmentalData[] | null
+}>()
 
 // State
-const searchText = ref('');
-const sortColumn = ref<keyof EnvironmentalData>('time');
-const sortDirection = ref<'asc' | 'desc'>('asc');
+const searchText = ref('')
+const sortColumn = ref<keyof EnvironmentalData>('time')
+const sortDirection = ref<'asc' | 'desc'>('asc')
 
 // Column configuration
 const columns: QTableColumn[] = [
@@ -76,37 +76,37 @@ const columns: QTableColumn[] = [
     label: 'Time',
     field: 'time',
     align: 'left',
-    sortable: true,
+    sortable: true
   },
   {
     name: 'category',
     label: 'Category',
     field: 'category',
     align: 'left',
-    sortable: true,
+    sortable: true
   },
   {
     name: 'field',
     label: 'Field',
     field: 'field',
     align: 'left',
-    sortable: true,
+    sortable: true
   },
   {
     name: 'value',
     label: 'Value',
     field: 'value',
     align: 'right',
-    sortable: true,
+    sortable: true
   },
   {
     name: 'score',
     label: 'Score',
     field: 'score',
     align: 'right',
-    sortable: true,
-  },
-];
+    sortable: true
+  }
+]
 
 const formatDate = (date: Date): string => {
   return date.toLocaleString('en-US', {
@@ -114,23 +114,23 @@ const formatDate = (date: Date): string => {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit',
-  });
-};
+    minute: '2-digit'
+  })
+}
 
 const formatNumber = (num: number): string => {
-  return num.toFixed(2);
-};
+  return num.toFixed(2)
+}
 
 // Computed properties
 const filteredData = computed(() => {
-  if (!props.data) return [];
+  if (!props.data) return []
 
-  let result = [...props.data].map((d, i) => ({ ...d, _rowKey: i }));
+  let result = [...props.data].map((d, i) => ({ ...d, _rowKey: i }))
 
   // Apply search filter
   if (searchText.value && searchText.value.trim()) {
-    const search = searchText.value.toLowerCase();
+    const search = searchText.value.toLowerCase()
     result = result.filter((row) => {
       return (
         row.category.toLowerCase().includes(search) ||
@@ -138,32 +138,32 @@ const filteredData = computed(() => {
         row.value.toString().includes(search) ||
         row.score.toString().includes(search) ||
         formatDate(row.time).toLowerCase().includes(search)
-      );
-    });
+      )
+    })
   }
 
   // Apply sorting
   result.sort((a, b) => {
-    const aVal = a[sortColumn.value];
-    const bVal = b[sortColumn.value];
+    const aVal = a[sortColumn.value]
+    const bVal = b[sortColumn.value]
 
-    let comparison = 0;
-    if (aVal < bVal) comparison = -1;
-    if (aVal > bVal) comparison = 1;
+    let comparison = 0
+    if (aVal < bVal) comparison = -1
+    if (aVal > bVal) comparison = 1
 
-    return sortDirection.value === 'asc' ? comparison : -comparison;
-  });
+    return sortDirection.value === 'asc' ? comparison : -comparison
+  })
 
-  return result;
-});
+  return result
+})
 
 // Watch for data changes and reset search
 watch(
   () => props.data,
   () => {
-    searchText.value = '';
-  },
-);
+    searchText.value = ''
+  }
+)
 </script>
 
 <style scoped>

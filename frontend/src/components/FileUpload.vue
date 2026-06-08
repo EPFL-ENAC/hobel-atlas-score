@@ -39,79 +39,79 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import type { EnvironmentalData } from '../composables/useHorizonChart';
-import { parseCSVData } from '../utils/chartUtils';
-import { baseUrl } from '../boot/api';
-import CSVExplorer from './CSVExplorer.vue';
-import atlasScoreData from '../assets/atlas_score_example.csv?raw';
+import { ref, onMounted } from 'vue'
+import type { EnvironmentalData } from '../composables/useHorizonChart'
+import { parseCSVData } from '../utils/chartUtils'
+import { baseUrl } from '../boot/api'
+import CSVExplorer from './CSVExplorer.vue'
+import atlasScoreData from '../assets/atlas_score_example.csv?raw'
 
 // Emits
 const emit = defineEmits<{
-  dataChanged: [data: EnvironmentalData[] | null];
-  fileStatusChanged: [isCustom: boolean, fileName: string];
-}>();
+  dataChanged: [data: EnvironmentalData[] | null]
+  fileStatusChanged: [isCustom: boolean, fileName: string]
+}>()
 
 // Refs
-const fileInput = ref<HTMLInputElement | null>(null);
-const fileName = ref<string>('');
-const isUsingCustomData = ref<boolean>(false);
-const uploadedData = ref<EnvironmentalData[] | null>(null);
-const isDataPreviewExpanded = ref<boolean>(false);
+const fileInput = ref<HTMLInputElement | null>(null)
+const fileName = ref<string>('')
+const isUsingCustomData = ref<boolean>(false)
+const uploadedData = ref<EnvironmentalData[] | null>(null)
+const isDataPreviewExpanded = ref<boolean>(false)
 
 // Load default data on mount
 onMounted(() => {
-  uploadedData.value = parseCSVData(atlasScoreData);
-});
+  uploadedData.value = parseCSVData(atlasScoreData)
+})
 
 // Methods
 const triggerFileInput = () => {
-  fileInput.value?.click();
-};
+  fileInput.value?.click()
+}
 
 const handleFileChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
 
-  if (!file) return;
+  if (!file) return
 
   try {
-    const formData = new FormData();
-    formData.append('file', file);
+    const formData = new FormData()
+    formData.append('file', file)
 
     const response = await fetch(`${baseUrl}/data/score`, {
       method: 'POST',
-      body: formData,
-    });
+      body: formData
+    })
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Server error: ${response.status}`);
+      const errorText = await response.text()
+      throw new Error(errorText || `Server error: ${response.status}`)
     }
 
-    const csvText = await response.text();
-    const parsedData = parseCSVData(csvText);
+    const csvText = await response.text()
+    const parsedData = parseCSVData(csvText)
 
     if (parsedData.length === 0) {
-      alert('No valid data found in the response. Please check the format.');
-      return;
+      alert('No valid data found in the response. Please check the format.')
+      return
     }
 
-    fileName.value = file.name;
-    isUsingCustomData.value = true;
-    uploadedData.value = parsedData;
+    fileName.value = file.name
+    isUsingCustomData.value = true
+    uploadedData.value = parsedData
 
-    emit('dataChanged', parsedData);
-    emit('fileStatusChanged', true, file.name);
+    emit('dataChanged', parsedData)
+    emit('fileStatusChanged', true, file.name)
   } catch (error) {
-    console.error('Error processing file:', error);
-    alert(`Error processing file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error processing file:', error)
+    alert(`Error processing file: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
 const toggleDataPreview = () => {
-  isDataPreviewExpanded.value = !isDataPreviewExpanded.value;
-};
+  isDataPreviewExpanded.value = !isDataPreviewExpanded.value
+}
 </script>
 
 <style scoped>

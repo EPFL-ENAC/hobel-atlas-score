@@ -1,11 +1,11 @@
-import { defineBoot } from '#q-app/wrappers';
-import { createI18n } from 'vue-i18n';
+import { defineBoot } from '#q-app/wrappers'
+import { createI18n } from 'vue-i18n'
 
-import messages from 'src/i18n';
+import messages from 'src/i18n'
 
-export type MessageLanguages = keyof typeof messages;
+export type MessageLanguages = keyof typeof messages
 // Type-define 'en-US' as the master schema for the resource
-export type MessageSchema = (typeof messages)['en-US'];
+export type MessageSchema = (typeof messages)['en-US']
 
 // See https://vue-i18n.intlify.dev/guide/advanced/typescript.html#global-resource-schema-type-definition
 /* eslint-disable @typescript-eslint/no-empty-object-type */
@@ -22,31 +22,31 @@ declare module 'vue-i18n' {
 /* eslint-enable @typescript-eslint/no-empty-object-type */
 
 function getInitialLocale(): MessageLanguages {
-  const stored = typeof window !== 'undefined' ? localStorage.getItem('app-locale') : null;
+  const stored = typeof window !== 'undefined' ? localStorage.getItem('app-locale') : null
   if (stored && (stored === 'en-US' || stored === 'fr')) {
-    return stored;
+    return stored
   }
 
   if (typeof navigator !== 'undefined') {
-    const browserLang = navigator.language.toLowerCase();
+    const browserLang = navigator.language.toLowerCase()
     if (browserLang.startsWith('fr')) {
-      return 'fr';
+      return 'fr'
     }
   }
 
-  return 'en-US';
+  return 'en-US'
 }
 
 export default defineBoot(({ app }) => {
   const i18n = createI18n<{ message: MessageSchema }, MessageLanguages>({
     locale: getInitialLocale(),
     legacy: false,
-    messages,
-  });
+    messages
+  })
 
-  app.use(i18n);
+  app.use(i18n)
 
   if (typeof window !== 'undefined') {
-    (window as { i18nGlobal?: unknown }).i18nGlobal = i18n.global;
+    ;(window as { i18nGlobal?: unknown }).i18nGlobal = i18n.global
   }
-});
+})

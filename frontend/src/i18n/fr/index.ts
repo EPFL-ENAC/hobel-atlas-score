@@ -40,7 +40,7 @@ export default {
     "Cliquez pour commencer à dessiner un polygone autour des bâtiments et pour ajouter des points. Double-cliquez ou tapez <span class='keybinding'>Entrée</span> pour terminer.<br><b>Incluez les façades, et ne vous préocupez pas des parties en dehors de l'image.</b>",
     'Cliquez pour définir le niveau de dégats, ou utilisez les touches <span class="keybinding">1</span> et <span class="keybinding">2</span>.<br><b>Plusieurs bâtiments partageant le même niveau de dégats peuvent être inclus dans un même polygone.</b>',
     "Cliquez sur 'Montrer carte' pour afficher une carte de référence. Assurez-vous de l'orienter correctement.",
-    "Marquez comme terminé une fois que tous les bâtiments ont été annotés et les niveaux de dégats définis, ou s'il n'y a aucun bâtiment sur l'image.",
+    "Marquez comme terminé une fois que tous les bâtiments ont été annotés et les niveaux de dégats définis, ou s'il n'y a aucun bâtiment sur l'image."
   ],
   next: 'Suivant',
   finish: 'Terminer',
@@ -149,5 +149,5 @@ export default {
   failedToAddImage: "Échec de l'ajout de l'image",
   failedToRemoveImage: "Échec de la suppression de l'image",
   failedToUpdateCompleted: "Échec de la mise à jour du statut de l'image",
-  failedToUpdateValidationStatus: "Échec de la mise à jour du statut de validation de l'image",
-};
+  failedToUpdateValidationStatus: "Échec de la mise à jour du statut de validation de l'image"
+}

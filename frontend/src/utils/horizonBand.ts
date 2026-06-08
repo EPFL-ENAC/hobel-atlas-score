@@ -1,7 +1,7 @@
-import * as d3 from 'd3';
-import type { EnvironmentalData } from '../composables/useHorizonChart';
-import type { ChartDimensions } from './expandedChart';
-import { formatWithUnicodeSubscripts } from './textFormatting';
+import * as d3 from 'd3'
+import type { EnvironmentalData } from '../composables/useHorizonChart'
+import type { ChartDimensions } from './expandedChart'
+import { formatWithUnicodeSubscripts } from './textFormatting'
 
 export const createHorizonBand = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
@@ -16,15 +16,15 @@ export const createHorizonBand = (
   field: string,
   fieldKey: string,
   globalIndex: number,
-  onToggle: (fieldKey: string) => void,
+  onToggle: (fieldKey: string) => void
 ) => {
-  const { marginLeft, marginRight, width, padding } = dimensions;
+  const { marginLeft, marginRight, width, padding } = dimensions
 
   // Create the vertical scale
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(fieldData, (d) => d[plotProperty]) as number])
-    .range([size, size - bands * (size - padding)]);
+    .range([size, size - bands * (size - padding)])
 
   // Create area generator
   const area = d3
@@ -32,16 +32,16 @@ export const createHorizonBand = (
     .defined((d) => !isNaN(d[plotProperty]) && d[plotProperty] > 0)
     .x((d) => x(d.time))
     .y0(size)
-    .y1((d) => y(d[plotProperty]));
+    .y1((d) => y(d[plotProperty]))
 
   // Unique identifier for clip rect and reusable paths
-  const uid = `O-${Math.random().toString(16).slice(2)}`;
+  const uid = `O-${Math.random().toString(16).slice(2)}`
 
   // Create a G element for each field, accounting for left margin
-  const g = svg.append('g').attr('transform', `translate(${marginLeft},${yOffset})`);
+  const g = svg.append('g').attr('transform', `translate(${marginLeft},${yOffset})`)
 
   // Add a rectangular clipPath and the reference area
-  const defs = g.append('defs');
+  const defs = g.append('defs')
 
   defs
     .append('clipPath')
@@ -49,12 +49,12 @@ export const createHorizonBand = (
     .append('rect')
     .attr('y', padding)
     .attr('width', width - marginLeft - marginRight)
-    .attr('height', size - padding);
+    .attr('height', size - padding)
 
-  defs.append('path').attr('id', `${uid}-path-${globalIndex}`).attr('d', area(fieldData));
+  defs.append('path').attr('id', `${uid}-path-${globalIndex}`).attr('d', area(fieldData))
 
   // Create a group for each field, in which the reference area will be replicated
-  const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${globalIndex})`);
+  const bandGroup = g.append('g').attr('clip-path', `url(#${uid}-clip-${globalIndex})`)
 
   bandGroup
     .selectAll('use')
@@ -63,7 +63,7 @@ export const createHorizonBand = (
     .append('use')
     .attr('xlink:href', `#${uid}-path-${globalIndex}`)
     .attr('fill', (_: unknown, j: number) => colors[j] ?? '#ccc')
-    .attr('transform', (_: unknown, j: number) => `translate(0,${j * size})`);
+    .attr('transform', (_: unknown, j: number) => `translate(0,${j * size})`)
 
   // Add the labels with a subtle stroke for better readability
   g.append('text')
@@ -73,14 +73,14 @@ export const createHorizonBand = (
     .attr('font-size', 12)
     .attr(
       'font-family',
-      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
     )
     .attr('font-weight', 'bold')
     .attr('stroke', 'white')
     .attr('stroke-width', 3)
     .attr('stroke-opacity', 0.8)
     .attr('paint-order', 'stroke')
-    .text(formatWithUnicodeSubscripts(field));
+    .text(formatWithUnicodeSubscripts(field))
 
   // Add a transparent rectangle that covers the entire band area to make it clickable
   g.append('rect')
@@ -90,5 +90,5 @@ export const createHorizonBand = (
     .attr('height', size - padding)
     .attr('fill', 'transparent')
     .style('cursor', 'pointer')
-    .on('click', () => onToggle(fieldKey));
-};
+    .on('click', () => onToggle(fieldKey))
+}

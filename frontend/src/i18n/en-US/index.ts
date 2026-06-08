@@ -38,7 +38,7 @@ export default {
     "Click to start drawing a polygon around buildings and add points. <span class='mousebinding'>Double-click</span> / <span class='keybinding'>Enter</span> to finalize.<br><b>Include facades, and don't worry about parts outside the image.</b>",
     'Click to set the damage level, or use the <span class="keybinding">1</span> and <span class="keybinding">2</span> keys.<br><b>Multiple buildings sharing the same damage level can be enclosed in a single polygon.</b>',
     'Click "Show map" to display a reference map. Make sure to orient it correctly.',
-    'Mark as completed once all buildings have been annotated and the damage levels set, or if there are no buildings on the image.',
+    'Mark as completed once all buildings have been annotated and the damage levels set, or if there are no buildings on the image.'
   ],
   next: 'Next',
   finish: 'Finish',
@@ -147,5 +147,5 @@ export default {
   failedToAddImage: 'Failed to add image',
   failedToRemoveImage: 'Failed to remove image',
   failedToUpdateCompleted: 'Failed to update image completed status',
-  failedToUpdateValidationStatus: 'Failed to update image validation status',
-};
+  failedToUpdateValidationStatus: 'Failed to update image validation status'
+}

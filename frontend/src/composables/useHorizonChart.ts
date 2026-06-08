@@ -1,93 +1,93 @@
-import { ref } from 'vue';
-import * as d3 from 'd3';
-import type { ColorSchemesContext } from './useColorSchemes';
-import { useColorSchemes } from './useColorSchemes';
+import { ref } from 'vue'
+import * as d3 from 'd3'
+import type { ColorSchemesContext } from './useColorSchemes'
+import { useColorSchemes } from './useColorSchemes'
 
 export interface EnvironmentalData {
-  time: Date;
-  category: string;
-  field: string;
-  value: number;
-  score: number;
+  time: Date
+  category: string
+  field: string
+  value: number
+  score: number
 }
 
 export const useHorizonChart = (passedColorSchemes?: ColorSchemesContext) => {
-  const expandedField = ref<string | null>(null);
+  const expandedField = ref<string | null>(null)
 
   // Get the default color schemes composable
-  const defaultColorSchemes = useColorSchemes();
+  const defaultColorSchemes = useColorSchemes()
 
   const toggleFieldExpansion = (fieldKey: string, recreateChart: () => void) => {
     if (expandedField.value === fieldKey) {
-      expandedField.value = null; // Collapse if already expanded
+      expandedField.value = null // Collapse if already expanded
     } else {
-      expandedField.value = fieldKey; // Expand this field
+      expandedField.value = fieldKey // Expand this field
     }
-    recreateChart();
-  };
+    recreateChart()
+  }
 
   const getCategoryColors = (category: string, bands: number): string[] => {
     // If we have custom color schemes passed in, use them
     if (passedColorSchemes && passedColorSchemes.getCategoryColors) {
-      return passedColorSchemes.getCategoryColors(category, bands);
+      return passedColorSchemes.getCategoryColors(category, bands)
     }
 
     // Use the default color schemes composable
     if (defaultColorSchemes.getCategoryColors) {
-      return defaultColorSchemes.getCategoryColors(category, bands);
+      return defaultColorSchemes.getCategoryColors(category, bands)
     }
 
     // Fallback to original hardcoded logic
-    let colorScheme: readonly string[] | undefined;
+    let colorScheme: readonly string[] | undefined
 
     switch (category) {
       case 'Air quality':
-        colorScheme = d3.schemeGreens[bands + 1];
-        break;
+        colorScheme = d3.schemeGreens[bands + 1]
+        break
       case 'Acoustics':
-        colorScheme = d3.schemeBlues[bands + 1];
-        break;
+        colorScheme = d3.schemeBlues[bands + 1]
+        break
       case 'Thermal comfort':
-        colorScheme = d3.schemeReds[bands + 1];
-        break;
+        colorScheme = d3.schemeReds[bands + 1]
+        break
       case 'Lighting':
-        colorScheme = d3.schemeYlOrBr[bands + 1];
-        break;
+        colorScheme = d3.schemeYlOrBr[bands + 1]
+        break
       default:
-        colorScheme = d3.schemeGreys[bands + 1];
+        colorScheme = d3.schemeGreys[bands + 1]
     }
 
-    return colorScheme?.slice(1) || ['#deebf7', '#9ecae1', '#3182bd'];
-  };
+    return colorScheme?.slice(1) || ['#deebf7', '#9ecae1', '#3182bd']
+  }
 
   const calculateTotalHeight = (
     categories: string[],
     groupedByCategory: Map<string, EnvironmentalData[]>,
     bandHeight: number,
-    expandedHeight = 200,
+    expandedHeight = 200
   ): number => {
-    let totalHeight = 0;
+    let totalHeight = 0
 
     categories.forEach((category) => {
-      const categoryData = groupedByCategory.get(category) || [];
-      const fieldsInCategory = Array.from(new Set(categoryData.map((d) => d.field)));
+      const categoryData = groupedByCategory.get(category) || []
+      const fieldsInCategory = Array.from(new Set(categoryData.map((d) => d.field)))
 
       fieldsInCategory.forEach((field) => {
-        const fieldKey = `${category}|${field}`;
-        const isExpanded = expandedField.value === fieldKey;
-        totalHeight += isExpanded ? expandedHeight : bandHeight;
-      });
+        const fieldKey = `${category}|${field}`
+        const isExpanded = expandedField.value === fieldKey
+        totalHeight += isExpanded ? expandedHeight : bandHeight
+      })
 
-      totalHeight += 50; // Space between categories
-    });
+      totalHeight += 50 // Space between categories
+    })
 
-    return totalHeight;
-  };
+    return totalHeight
+  }
 
   return {
     expandedField,
     toggleFieldExpansion,
     getCategoryColors,
-    calculateTotalHeight,
-  };
-};
+    calculateTotalHeight
+  }
+}

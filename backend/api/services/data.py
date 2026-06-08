@@ -208,7 +208,7 @@ def get_category(
             field = field_base
             break
 
-    return _get_field_to_category().get(field, None)  # type: ignore
+    return _get_field_to_category().get(field, None)
 
 
 @cache

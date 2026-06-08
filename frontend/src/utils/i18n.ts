@@ -5,11 +5,11 @@
 export function getI18nT(): (key: string, params?: Record<string, unknown>) => string {
   if (typeof window !== 'undefined') {
     const win = window as unknown as {
-      i18nGlobal?: { t: (key: string, params?: Record<string, unknown>) => string };
-    };
+      i18nGlobal?: { t: (key: string, params?: Record<string, unknown>) => string }
+    }
     if (win.i18nGlobal) {
-      return win.i18nGlobal.t;
+      return win.i18nGlobal.t
     }
   }
-  return (key: string) => key;
+  return (key: string) => key
 }
