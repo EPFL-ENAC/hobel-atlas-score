@@ -9,7 +9,7 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 from pydantic import BaseModel
 
 from api.config import config
-from views.data import router as data_router
+from api.views.data import router as data_router
 
 
 basicConfig(level=INFO)

@@ -7,7 +7,6 @@ from fastapi.responses import Response
 
 from api.services.data import concat_scores
 
-
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
 
