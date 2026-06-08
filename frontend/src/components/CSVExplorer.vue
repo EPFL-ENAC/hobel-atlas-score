@@ -169,10 +169,17 @@ watch(
 <style scoped>
 .csv-explorer {
   margin: 20px 0;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #555;
   border-radius: 8px;
-  background: #fff;
+  background: #242424;
   overflow: hidden;
+}
+
+@media (prefers-color-scheme: light) {
+  .csv-explorer {
+    background: #fff;
+    border-color: #e0e0e0;
+  }
 }
 
 .explorer-content {
@@ -203,8 +210,16 @@ watch(
 .my-sticky-dynamic .q-table__bottom,
 .my-sticky-dynamic thead tr:first-child th {
   /* bg color is important for th; just specify one */
-  background-color: #ffffff;
+  background-color: #242424;
   backdrop-filter: blur(2px);
+}
+
+@media (prefers-color-scheme: light) {
+  .my-sticky-dynamic .q-table__top,
+  .my-sticky-dynamic .q-table__bottom,
+  .my-sticky-dynamic thead tr:first-child th {
+    background-color: #ffffff;
+  }
 }
 
 .my-sticky-dynamic thead tr th {
@@ -221,8 +236,14 @@ watch(
 .data-table :deep(.q-table thead th) {
   position: sticky !important;
   top: 0;
-  background: white !important;
+  background: #242424 !important;
   z-index: 10;
+}
+
+@media (prefers-color-scheme: light) {
+  .data-table :deep(.q-table thead th) {
+    background: white !important;
+  }
 }
 
 /* prevent scrolling behind sticky top row on focus */
