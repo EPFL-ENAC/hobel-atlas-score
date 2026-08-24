@@ -3,7 +3,18 @@
     <h3>Atlas Score Visualization</h3>
 
     <!-- File Upload Section -->
-    <FileUpload @data-changed="handleDataChanged" @file-status-changed="handleFileStatusChanged" />
+    <FileUpload
+      @data-changed="handleDataChanged"
+      @file-status-changed="handleFileStatusChanged"
+      @score-note-changed="handleScoreNoteChanged"
+    />
+
+    <q-banner v-if="scoreNote" rounded class="bg-warning text-dark q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="warning" color="dark" />
+      </template>
+      {{ scoreNote }}
+    </q-banner>
 
     <div class="controls">
       <div class="control-group">
@@ -155,6 +166,7 @@ const dataProperty = ref<'value' | 'score'>('score')
 
 // Data management
 const csvData = ref<EnvironmentalData[] | null>(null)
+const scoreNote = ref<string | null>(null)
 
 // Color scheme management
 const colorSchemesComposable = useColorSchemes()
@@ -199,6 +211,10 @@ const handleDataChanged = (data: EnvironmentalData[] | null) => {
 const handleFileStatusChanged = (_isCustom: boolean, _fileName: string) => {
   void _isCustom
   void _fileName
+}
+
+const handleScoreNoteChanged = (note: string | null) => {
+  scoreNote.value = note
 }
 </script>
 

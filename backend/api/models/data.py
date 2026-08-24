@@ -12,6 +12,7 @@ Field = Literal[
     "so2",
     "co",
     "temperature",
+    "outdoor_temperature",
     "light_percent",
     "sla",
 ]

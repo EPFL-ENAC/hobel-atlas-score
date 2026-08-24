@@ -36,6 +36,19 @@
           </q-banner>
         </div>
 
+        <!-- Context note -->
+        <div class="q-mt-md">
+          <q-banner inline-actions rounded class="bg-blue-1 text-grey-9">
+            <template v-slot:avatar>
+              <q-icon name="settings" color="primary" />
+            </template>
+            For temperature scoring, fill in the building type, cooling/conditionning type, and
+            heating-season coverage. If outdoor temperature data are supplied (e.g.
+            <code>outdoor temperature</code>), the backend will use the adaptive comfort method when
+            applicable; otherwise it falls back to fixed mechanical-cooling criteria.
+          </q-banner>
+        </div>
+
         <!-- Download examples buttons -->
         <div class="q-mt-lg row q-gutter-sm">
           <q-btn

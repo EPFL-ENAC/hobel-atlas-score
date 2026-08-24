@@ -5,12 +5,27 @@ import inperso
 import pandas as pd
 from fastapi import HTTPException
 from inperso.atlas_index.preprocessing import compute_sla, convert_units
-from inperso.atlas_index.scores import compute_scores
+from inperso.atlas_index.scores import (
+    ScoreContext,
+    compute_scores,
+    compute_scores_with_context,
+)
 
 from api.models.data import Category, Field
 
 categories: dict[Category, Field] = inperso.config.atlas_index["index_fields"]
 patterns: dict[Field, list[str]] = {
+    "outdoor_temperature": [
+        "outdoor temperature",
+        "outdoor temp",
+        "outside temperature",
+        "outside temp",
+        "external temperature",
+        "external temp",
+        "outdoor_temp",
+        "outside_temp",
+        "external_temp",
+    ],
     "co2": [
         "co2",
         "co_2",
@@ -133,7 +148,10 @@ def _get_compiled_patterns() -> dict[Field, list[re.Pattern]]:
     return compiled_patterns
 
 
-def concat_scores(df: pd.DataFrame) -> pd.DataFrame:
+def concat_scores(
+    df: pd.DataFrame,
+    context: ScoreContext | None = None,
+) -> tuple[pd.DataFrame, str | None]:
     fields_map, raw_fields_map = get_fields_maps(df)
 
     df["time"] = pd.to_datetime(df["time"])
@@ -144,14 +162,20 @@ def concat_scores(df: pd.DataFrame) -> pd.DataFrame:
     df = convert_units(df)
     df = compute_light_percent(df)
     df = compute_sla(df)
-    df = compute_scores(df, keep_values=True)
+
+    fallback_note: str | None = None
+
+    if context is not None:
+        df, fallback_note = compute_scores_with_context(df, context, keep_values=True)
+    else:
+        df = compute_scores(df, keep_values=True)
 
     df["category"] = df["field"].apply(lambda x: get_category(x))
     df["category"] = df["category"].apply(lambda x: category_names[x])
     df["field"] = df["field"].apply(lambda x: raw_fields_map[x])
-    df.drop(columns=["unit_number"], inplace=True)
+    df.drop(columns=["unit_number"], inplace=True, errors="ignore")
 
-    return df
+    return df, fallback_note
 
 
 def compute_light_percent(df: pd.DataFrame) -> pd.DataFrame:
