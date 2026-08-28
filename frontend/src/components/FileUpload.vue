@@ -177,11 +177,11 @@ const isDataPreviewExpanded = ref<boolean>(false)
 const showFormatInfo = ref<boolean>(false)
 
 // Contextual inputs
-const buildingType = ref<BuildingType | ''>('')
-const coolingType = ref<CoolingType | ''>('')
-const heatingSeason = ref<HeatingSeason | ''>('')
-const heatingSeasonStart = ref<string>('')
-const heatingSeasonEnd = ref<string>('')
+const buildingType = ref<BuildingType>('residential')
+const coolingType = ref<CoolingType>('natural')
+const heatingSeason = ref<HeatingSeason>('mixed')
+const heatingSeasonStart = ref<string>('11/01')
+const heatingSeasonEnd = ref<string>('03/01')
 
 const buildingTypeOptions = [
   { label: 'Residential', value: 'residential' },
