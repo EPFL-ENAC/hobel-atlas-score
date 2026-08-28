@@ -8,7 +8,6 @@ from inperso.atlas_index.preprocessing import compute_sla, convert_units
 from inperso.atlas_index.scores import (
     ScoreContext,
     compute_scores,
-    compute_scores_with_context,
 )
 
 from api.models.data import Category, Field
@@ -150,7 +149,7 @@ def _get_compiled_patterns() -> dict[Field, list[re.Pattern]]:
 
 def concat_scores(
     df: pd.DataFrame,
-    context: ScoreContext | None = None,
+    context: ScoreContext,
 ) -> tuple[pd.DataFrame, str | None]:
     fields_map, raw_fields_map = get_fields_maps(df)
 
@@ -163,13 +162,7 @@ def concat_scores(
     df = compute_light_percent(df)
     df = compute_sla(df)
 
-    fallback_note: str | None = None
-
-    if context is not None:
-        df, fallback_note = compute_scores_with_context(df, context, keep_values=True)
-    else:
-        df = compute_scores(df, keep_values=True)
-
+    df, fallback_note = compute_scores(df, context, keep_values=True)
     df["category"] = df["field"].apply(lambda x: get_category(x))
     df["category"] = df["category"].apply(lambda x: category_names[x])
     df["field"] = df["field"].apply(lambda x: raw_fields_map[x])

@@ -5,8 +5,9 @@ from typing import Literal
 import pandas as pd
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import Response
+from inperso.atlas_index.scores import ScoreContext, default_score_context
 
-from api.services.data import ScoreContext, concat_scores
+from api.services.data import concat_scores
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
@@ -48,34 +49,38 @@ async def score_file(
                 detail="Invalid file. Supported formats: CSV (comma, semicolon, or space-separated), xlsx.",
             )
 
-    context: ScoreContext | None = None
-    if (
-        building_type is not None
-        or cooling_type is not None
-        or heating_season is not None
-    ):
-        if building_type is None or cooling_type is None or heating_season is None:
-            raise HTTPException(
-                status_code=400,
-                detail="Building type, cooling/conditionning type, and heating-season coverage must all be provided.",
-            )
-        if heating_season == "mixed" and not (
-            heating_season_start and heating_season_end
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail="Heating season start and end are required when coverage is 'mixed'.",
-            )
-        context = ScoreContext(
-            building_type=building_type,
-            cooling_type=cooling_type,
-            heating_season=heating_season,
-            heating_season_start=heating_season_start,
-            heating_season_end=heating_season_end,
-        )
-
     if "score" not in df.columns:
         try:
+            context = default_score_context
+            if (
+                building_type is not None
+                or cooling_type is not None
+                or heating_season is not None
+            ):
+                if (
+                    building_type is None
+                    or cooling_type is None
+                    or heating_season is None
+                ):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Building type, cooling/conditionning type, and heating-season coverage must all be provided.",
+                    )
+                if heating_season == "mixed" and not (
+                    heating_season_start and heating_season_end
+                ):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Heating season start and end are required when coverage is 'mixed'.",
+                    )
+                context = ScoreContext(
+                    building_type=building_type,
+                    cooling_type=cooling_type,
+                    heating_season=heating_season,
+                    heating_season_start=heating_season_start,
+                    heating_season_end=heating_season_end,
+                )
+
             df, fallback_note = concat_scores(df, context)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
