@@ -146,6 +146,38 @@
         :num-bands="circularPlotBands"
       />
     </div>
+
+    <!-- Credits / Acknowledgements Section -->
+    <div class="credits-section">
+      <p class="text-caption text-grey-8">
+        This work was led by four researchers: Dr Reza Daneshazarian, Dr Bowen Du, Dr Sarah Crosby,
+        and Dr Cairan Van Rooyen.
+      </p>
+      <p class="text-caption text-grey-8">
+        The research was supported by the INPERSO Project (Industrialised and Personalised
+        Renovation for Sustainable Societies), funded by the European Union's Horizon Europe
+        programme. The related paper, "ATLAS: A Performance-Based Index for Integrated Evaluation
+        and Benchmarking of Indoor Environmental Quality," is available in Building and Environment:
+        <a
+          href="https://doi.org/10.1016/j.buildenv.2026.114985"
+          target="_blank"
+          rel="noopener noreferrer"
+          >https://doi.org/10.1016/j.buildenv.2026.114985</a
+        >
+      </p>
+      <p class="text-caption text-grey-8">
+        Developers:
+        <a href="https://enacit4r.epfl.ch" target="_blank" rel="noopener noreferrer"
+          >ENAC-IT4R team</a
+        >. Submit feedback and issues to
+        <a
+          href="https://github.com/EPFL-ENAC/hobel-atlas-score/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          >https://github.com/EPFL-ENAC/hobel-atlas-score/issues</a
+        >.
+      </p>
+    </div>
   </div>
 </template>
 
@@ -345,6 +377,33 @@ const handleScoreNoteChanged = (note: string | null) => {
 .visualization-section {
   margin-bottom: 40px;
   padding: 20px 0;
+}
+
+.credits-section {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.credits-section h6 {
+  font-weight: bold;
+  color: currentColor;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.credits-section p {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.credits-section a {
+  color: var(--q-primary, #1976d2);
+  word-break: break-all;
 }
 
 .visualization-section h4 {
