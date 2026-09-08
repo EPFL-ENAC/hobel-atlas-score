@@ -6,10 +6,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version < '3.12' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -475,8 +475,8 @@ wheels = [
 
 [[package]]
 name = "hobel-inperso-ieq"
-version = "0.0.0.post108+e92b5f0"
-source = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git#e92b5f01e85dab9178632aafcd9b86f69c53a4f0" }
+version = "0.0.0.post111+4c76468"
+source = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git#4c76468fc57215d5e582c1902ce791499756e17f" }
 dependencies = [
     { name = "influxdb-client" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
