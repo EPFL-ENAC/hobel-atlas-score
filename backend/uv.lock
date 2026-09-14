@@ -103,7 +103,7 @@ requires-dist = [
     { name = "dotenv", marker = "extra == 'dev'", specifier = ">=0.9.9" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "fastapi-cache2", specifier = ">=0.2.2" },
-    { name = "hobel-inperso-ieq", git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git" },
+    { name = "hobel-inperso-ieq", git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git?rev=694a033f18f293001d031d3345b235d87aa6cf39" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.39.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -475,8 +475,8 @@ wheels = [
 
 [[package]]
 name = "hobel-inperso-ieq"
-version = "0.0.0.post111+4c76468"
-source = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git#4c76468fc57215d5e582c1902ce791499756e17f" }
+version = "0.0.0.post114+694a033"
+source = { git = "https://github.com/EPFL-ENAC/hobel-inperso-ieq.git?rev=694a033f18f293001d031d3345b235d87aa6cf39#694a033f18f293001d031d3345b235d87aa6cf39" }
 dependencies = [
     { name = "influxdb-client" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },

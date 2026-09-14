@@ -117,6 +117,9 @@
                 {{ pattern }}
               </q-chip>
             </div>
+            <div v-if="fieldInfo.note" class="field-note text-caption">
+              {{ fieldInfo.note }}
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -168,7 +171,14 @@ const tableColumns = [
 
 const categories = ['Acoustics', 'Air quality', 'Lighting', 'Thermal comfort']
 
-const fields = computed(() => [
+interface FieldInfo {
+  key: string
+  category: string
+  patterns: string[]
+  note?: string
+}
+
+const fields = computed<FieldInfo[]>(() => [
   {
     key: 'co2',
     category: 'Air quality',
@@ -215,6 +225,12 @@ const fields = computed(() => [
     patterns: ['co', 'carbon monoxide']
   },
   {
+    key: 'rn',
+    category: 'Air quality',
+    patterns: ['radon'],
+    note: 'For schools only. Radon concentration in Bq/m3. Residential uploads are ignored.'
+  },
+  {
     key: 'temperature',
     category: 'Thermal comfort',
     patterns: ['temperature', 'temp']
@@ -222,12 +238,25 @@ const fields = computed(() => [
   {
     key: 'light_percent',
     category: 'Lighting',
-    patterns: ['light percent', 'illuminance', 'light', 'lux', 'lighting']
+    patterns: ['light percent', 'illuminance', 'light', 'lux', 'lighting'],
+    note: 'For residential buildings only. Percent-of-time columns are not valid for school buildings.'
+  },
+  {
+    key: 'light',
+    category: 'Lighting',
+    patterns: ['light', 'lux', 'illuminance', 'lighting'],
+    note: 'For school buildings, these names carry values in lux. Residential buildings must upload percent-of-time values with the light_percent field.'
   },
   {
     key: 'sla',
     category: 'Acoustics',
     patterns: ['sla', 'sound pressure', 'sound', 'db(a)', 'noise', 'acoustic']
+  },
+  {
+    key: 'reverberation_time',
+    category: 'Acoustics',
+    patterns: ['reverberation time', 'reverberation'],
+    note: 'For schools only. Reverberation time in seconds. Residential uploads are ignored.'
   }
 ])
 </script>
@@ -251,6 +280,10 @@ const fields = computed(() => [
 }
 
 .field-patterns {
+  padding-left: 20px;
+}
+
+.field-note {
   padding-left: 20px;
 }
 </style>

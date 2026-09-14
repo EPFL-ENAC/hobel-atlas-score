@@ -1,7 +1,16 @@
+import pandas as pd
 import pytest
 from fastapi import HTTPException
+from inperso.atlas_index.scores import ScoreContext
 
-from api.services.data import get_field_name, get_category
+from api.services.data import (
+    concat_scores,
+    drop_fields_without_thresholds,
+    get_category,
+    get_field_name,
+    get_fields_maps,
+    is_percent_of_time,
+)
 
 
 @pytest.mark.parametrize(
@@ -59,6 +68,10 @@ from api.services.data import get_field_name, get_category
         ("carbon monoxide", ("co", "iaq")),
         ("carbon-monoxide", ("co", "iaq")),
         ("CO", ("co", "iaq")),
+        # rn
+        ("Radon (Bq/m3)", ("rn", "iaq")),
+        ("radon", ("rn", "iaq")),
+        ("radon-concentration", ("rn", "iaq")),
         # temperature
         ("temperature", ("temperature", "thermal")),
         ("TEMP", ("temperature", "thermal")),
@@ -78,12 +91,17 @@ from api.services.data import get_field_name, get_category
         ("db(a)", ("sla", "noise")),
         ("acoustic", ("sla", "noise")),
         ("noise", ("sla", "noise")),
+        # reverberation_time
+        ("Reverberation time (s)", ("reverberation_time", "noise")),
+        ("reverberation time", ("reverberation_time", "noise")),
+        ("reverberation", ("reverberation_time", "noise")),
         # boundary: non-alphanumeric delimiters
         ("_co2_", ("co2", "iaq")),
         ("[pm2.5]", ("pm25", "iaq")),
         # boundary: alphanumeric neighbours must NOT match
         ("xco2x", None),
         ("abcO3def", None),
+        ("xradonx", None),
     ],
 )
 def test_get_field_name(raw_field_name, expected):
@@ -95,3 +113,184 @@ def test_get_field_name(raw_field_name, expected):
         category = get_category(field)
 
         assert (field, category) == expected
+
+
+def test_get_category_light():
+    assert get_category("light") == "lux"
+
+
+def test_is_percent_of_time():
+    assert is_percent_of_time("light percent")
+    assert is_percent_of_time("Illuminance (% above/below thresholds)")
+    assert not is_percent_of_time("Illuminance (lux)")
+
+
+def test_get_fields_maps_school_light():
+    df = pd.DataFrame({"field": ["CO2", "Illuminance (lux)"]})
+
+    fields_map, raw_fields_map = get_fields_maps(df, "school")
+
+    assert fields_map == {"CO2": "co2", "Illuminance (lux)": "light"}
+    assert raw_fields_map == {"co2": "CO2", "light": "Illuminance (lux)"}
+
+
+def test_get_fields_maps_school_percent():
+    df = pd.DataFrame({"field": ["light percent"]})
+
+    with pytest.raises(HTTPException):
+        get_fields_maps(df, "school")
+
+
+def test_get_fields_maps_residential_light():
+    df = pd.DataFrame({"field": ["Illuminance (lux)"]})
+
+    with pytest.raises(HTTPException):
+        get_fields_maps(df, "residential")
+
+
+def test_get_fields_maps_residential_percent():
+    df = pd.DataFrame({"field": ["CO2", "light percent"]})
+
+    fields_map, raw_fields_map = get_fields_maps(df, "residential")
+
+    assert fields_map == {"CO2": "co2", "light percent": "light_percent"}
+    assert raw_fields_map == {
+        "co2": "CO2",
+        "light_percent_day": "light percent",
+        "light_percent_night": "light percent",
+    }
+
+
+def test_concat_scores_school_light():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T10:00:00"],
+            "field": ["co2", "Illuminance (lux)"],
+            "value": [500.0, 800.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="mechanical", heating_season="non-heating"
+    )
+
+    df, note = concat_scores(df, context)
+
+    # co2: 500 ppm <= 800 -> 100. light: school lux thresholds are
+    # greater with 1000/750/500, so 800 lux -> 60.
+    assert note is None
+    assert set(df["field"]) == {"co2", "Illuminance (lux)"}
+    scores = dict(zip(df["field"], df["score"]))
+    categories = dict(zip(df["field"], df["category"]))
+    assert scores["co2"] == pytest.approx(100)
+    assert scores["Illuminance (lux)"] == pytest.approx(60)
+    assert categories["co2"] == "Air quality"
+    assert categories["Illuminance (lux)"] == "Lighting"
+
+
+def test_concat_scores_residential_light_percent():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T23:00:00"],
+            "field": ["light percent", "light percent"],
+            "value": [60.0, 20.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="residential",
+        cooling_type="mechanical",
+        heating_season="non-heating",
+    )
+
+    df, note = concat_scores(df, context)
+
+    # Residential percent-of-time thresholds: day greater with 60/40/10,
+    # night smaller with 0/50/90.
+    assert note is None
+    assert len(df) == 2
+    scores = df.set_index(df["time"].dt.hour)["score"]
+    assert scores.loc[10] == pytest.approx(100.0)
+    assert scores.loc[23] == pytest.approx(80.0)
+
+
+def test_concat_scores_school_percent_only_rejected():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T23:00:00"],
+            "field": ["light percent", "light percent"],
+            "value": [60.0, 20.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="mechanical", heating_season="non-heating"
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        concat_scores(df, context)
+
+    assert exc_info.value.status_code == 400
+    assert "lux" in exc_info.value.detail
+
+
+def test_concat_scores_residential_radon_only_rejected(caplog):
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00"],
+            "field": ["Radon (Bq/m3)"],
+            "value": [150.0],
+            "device": [""],
+        }
+    )
+    context = ScoreContext(
+        building_type="residential",
+        cooling_type="mechanical",
+        heating_season="non-heating",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        concat_scores(df, context)
+
+    assert exc_info.value.status_code == 400
+    assert "residential" in exc_info.value.detail
+
+
+def test_concat_scores_residential_drops_radon_rows():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T10:00:00"],
+            "field": ["Radon (Bq/m3)", "co2"],
+            "value": [150.0, 500.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="residential",
+        cooling_type="mechanical",
+        heating_season="non-heating",
+    )
+
+    df, note = concat_scores(df, context)
+
+    # Radon has no residential thresholds; only co2 is scored.
+    assert set(df["field"]) == {"co2"}
+    scores = dict(zip(df["field"], df["score"]))
+    assert scores["co2"] == pytest.approx(100.0)
+
+
+def test_drop_fields_without_thresholds_rejects_outdoor_only():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00"],
+            "field": ["outdoor temperature"],
+            "value": [15.0],
+            "device": [""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="natural", heating_season="heating"
+    )
+
+    with pytest.raises(HTTPException):
+        drop_fields_without_thresholds(df, context)

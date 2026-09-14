@@ -1,3 +1,5 @@
+import copy
+import logging
 import re
 from functools import cache
 
@@ -8,11 +10,12 @@ from inperso.atlas_index.preprocessing import compute_sla, convert_units
 from inperso.atlas_index.scores import (
     ScoreContext,
     compute_scores,
+    default_score_context,
 )
 
 from api.models.data import Category, Field
 
-categories: dict[Category, Field] = inperso.config.atlas_index["index_fields"]
+categories: dict[Category, list[Field]] = inperso.config.atlas_index["index_fields"]
 patterns: dict[Field, list[str]] = {
     "outdoor_temperature": [
         "outdoor temperature",
@@ -80,6 +83,10 @@ patterns: dict[Field, list[str]] = {
         "co",
         "carbon monoxide",
     ],
+    "rn": [
+        "rn",
+        "radon",
+    ],
     "temperature": [
         "temperature",
         "temp",
@@ -98,6 +105,10 @@ patterns: dict[Field, list[str]] = {
         "db(a)",
         "noise",
         "acoustic",
+    ],
+    "reverberation_time": [
+        "reverberation time",
+        "reverberation",
     ],
 }
 field_variants: dict[Field, list[str]] = {
@@ -129,6 +140,8 @@ def _get_field_to_category() -> dict[Field, Category]:
             for key in patterns:
                 if m == key or m.startswith(key):
                     field_to_category[key] = cat
+            # Names not covered by any pattern key (e.g. `light`) still resolve to their index category.
+            field_to_category[m] = cat
 
     return field_to_category
 
@@ -147,11 +160,64 @@ def _get_compiled_patterns() -> dict[Field, list[re.Pattern]]:
     return compiled_patterns
 
 
+@cache
+def _get_scoreable_fields(building_type: str) -> set[str]:
+    """Fields with score thresholds for a building type.
+
+    The library scores on the residential thresholds with the building-type
+    context overrides on top (see inperso.atlas_index.scores._get_thresholds),
+    so a field is scoreable when either dict defines it.
+    """
+    thresholds = copy.deepcopy(
+        inperso.config.atlas_index["thresholds"][default_score_context.building_type]
+    )
+
+    for field, params in inperso.config.atlas_index["thresholds"][
+        building_type
+    ].items():
+        thresholds[field] = params
+
+    return set(thresholds)
+
+
+def drop_fields_without_thresholds(
+    df: pd.DataFrame, context: ScoreContext
+) -> pd.DataFrame:
+    """Drop rows that the library scoring cannot score, and reject empty results.
+
+    inperso-ieq drops fields without threshold parameters for the context and
+    returns an error on an empty frame when every row is dropped. Temperature
+    fields have no thresholds themselves: the library turns them into variant
+    fields for the context and drops the outdoor rows itself.
+    """
+    scoreable = _get_scoreable_fields(context.building_type)
+    library_handled = {"temperature", "outdoor_temperature"}
+
+    no_threshold_fields = sorted(set(df["field"]) - scoreable - library_handled)
+    if no_threshold_fields:
+        logging.warning(
+            f"No thresholds found for the {context.building_type} context for the fields: {no_threshold_fields}. "
+            "Dropping the rows."
+        )
+        df = df[~df["field"].isin(no_threshold_fields)]
+
+    if set(df["field"]) <= {"outdoor_temperature"}:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"None of the uploaded fields can be scored for the '{context.building_type}' building type. "
+                "The upload has no fields with score thresholds for this building type."
+            ),
+        )
+
+    return df
+
+
 def concat_scores(
     df: pd.DataFrame,
     context: ScoreContext,
 ) -> tuple[pd.DataFrame, str | None]:
-    fields_map, raw_fields_map = get_fields_maps(df)
+    fields_map, raw_fields_map = get_fields_maps(df, context.building_type)
 
     df["time"] = pd.to_datetime(df["time"])
     df["field"] = df["field"].apply(lambda x: fields_map[x])
@@ -161,6 +227,7 @@ def concat_scores(
     df = convert_units(df)
     df = compute_light_percent(df)
     df = compute_sla(df)
+    df = drop_fields_without_thresholds(df, context)
 
     df, fallback_note = compute_scores(df, context, keep_values=True)
     df["category"] = df["field"].apply(lambda x: get_category(x))
@@ -184,12 +251,44 @@ def compute_light_percent(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_fields_maps(df: pd.DataFrame) -> tuple[dict[str, Field], dict[Field, str]]:
+def is_percent_of_time(raw_field: str) -> bool:
+    """Check if an upload column name indicates percent-of-time values."""
+    lower = raw_field.lower()
+    return "percent" in lower or "%" in lower
+
+
+def get_fields_maps(
+    df: pd.DataFrame, building_type: str
+) -> tuple[dict[str, Field], dict[Field, str]]:
     fields_map = {}
     raw_fields_map = {}
 
     for raw_field in df["field"].unique():
         field = get_field_name(raw_field)
+        if field == "light_percent":
+            if building_type == "school":
+                if is_percent_of_time(raw_field):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            f"The field '{raw_field}' holds percent-of-time light values, which are only "
+                            "scored for residential buildings. School buildings must upload light values "
+                            "in lux (e.g. an 'Illuminance (lux)' or 'light' column)."
+                        ),
+                    )
+                # Schools upload raw lux values, so map light-ish columns to
+                # the school `light` field instead of the percent field.
+                field = "light"
+            elif not is_percent_of_time(raw_field):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"The field '{raw_field}' looks like raw light values in lux, which are only "
+                        "scored for school buildings. Residential buildings must upload percent-of-time "
+                        "light values (e.g. a 'light percent' column)."
+                    ),
+                )
+
         fields_map[raw_field] = field
 
         if field in field_variants:
