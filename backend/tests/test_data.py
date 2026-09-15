@@ -234,7 +234,7 @@ def test_concat_scores_school_percent_only_rejected():
     assert "lux" in exc_info.value.detail
 
 
-def test_concat_scores_residential_radon_only_rejected(caplog):
+def test_concat_scores_residential_radon_only_scored():
     df = pd.DataFrame(
         {
             "time": ["2024-01-10T10:00:00"],
@@ -249,14 +249,18 @@ def test_concat_scores_residential_radon_only_rejected(caplog):
         heating_season="non-heating",
     )
 
-    with pytest.raises(HTTPException) as exc_info:
-        concat_scores(df, context)
+    df, note = concat_scores(df, context)
 
-    assert exc_info.value.status_code == 400
-    assert "residential" in exc_info.value.detail
+    # The residential rn thresholds are 100/200/300 Bq/m3, so 150 Bq/m3
+    # scores 75.
+    assert note is None
+    assert len(df) == 1
+    assert set(df["field"]) == {"Radon (Bq/m3)"}
+    assert df["score"].iloc[0] == pytest.approx(75.0)
+    assert df["category"].iloc[0] == "Air quality"
 
 
-def test_concat_scores_residential_drops_radon_rows():
+def test_concat_scores_residential_scores_radon_with_co2():
     df = pd.DataFrame(
         {
             "time": ["2024-01-10T10:00:00", "2024-01-10T10:00:00"],
@@ -273,9 +277,12 @@ def test_concat_scores_residential_drops_radon_rows():
 
     df, note = concat_scores(df, context)
 
-    # Radon has no residential thresholds; only co2 is scored.
-    assert set(df["field"]) == {"co2"}
+    # The residential rn thresholds are 100/200/300 Bq/m3, so 150 Bq/m3
+    # scores 75. A co2 value of 500 ppm is below the high-score boundary and
+    # scores 100.
+    assert set(df["field"]) == {"Radon (Bq/m3)", "co2"}
     scores = dict(zip(df["field"], df["score"]))
+    assert scores["Radon (Bq/m3)"] == pytest.approx(75.0)
     assert scores["co2"] == pytest.approx(100.0)
 
 

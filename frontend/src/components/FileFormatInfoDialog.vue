@@ -227,8 +227,7 @@ const fields = computed<FieldInfo[]>(() => [
   {
     key: 'rn',
     category: 'Air quality',
-    patterns: ['radon'],
-    note: 'For schools only. Radon concentration in Bq/m3. Residential uploads are ignored.'
+    patterns: ['radon']
   },
   {
     key: 'temperature',
