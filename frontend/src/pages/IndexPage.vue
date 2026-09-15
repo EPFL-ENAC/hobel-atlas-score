@@ -150,8 +150,8 @@
     <!-- Credits / Acknowledgements Section -->
     <div class="credits-section">
       <p class="text-caption text-grey-8">
-        This work was led by four researchers: Dr Reza Daneshazarian, Dr Bowen Du, Dr Sarah Crosby,
-        and Dr Cairan Van Rooyen.
+        This work was led by Dr Bowen Du, Dr Reza Daneshazarian, Dr Sarah Crosby, Dr Cairan Van
+        Rooyen, and Dr Dusan Licina.
       </p>
       <p class="text-caption text-grey-8">
         The research was supported by the INPERSO Project (Industrialised and Personalised
