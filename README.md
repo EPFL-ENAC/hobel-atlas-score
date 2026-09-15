@@ -142,6 +142,7 @@ id,time,category,field,value,score
 - **field**: Specific parameter within category (e.g., "co2", "temperature")
 - **value**: Raw measurement value
 - **score**: Normalized score (0-100 scale)
+- **occupancy** (optional field): Occupied state of the space, a number or boolean. A value greater than 0 or true means occupied. For schools, occupied rows decide which light rows are kept. Without occupancy data, the occupancy hours of the context are used.
 
 ### Supported Categories
 

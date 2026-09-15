@@ -104,6 +104,43 @@
           class="date-input"
         />
       </div>
+
+      <div v-if="buildingType === 'school'" class="season-dates row q-gutter-md q-mt-xs">
+        <q-input
+          v-model="occupancyStartHour"
+          outlined
+          dense
+          hide-bottom-space
+          mask="##"
+          label="Occupancy start hour"
+          placeholder="8"
+          :error="!!formErrors.occupancyStartHour"
+          :error-message="formErrors.occupancyStartHour"
+          class="date-input"
+        >
+          <template v-slot:append>
+            <q-icon name="help_outline" size="xs">
+              <q-tooltip>
+                Optional. Light rows are scored only between these hours. The configuration default
+                hours are used when both are left empty. The occupancy field takes precedence when
+                provided.
+              </q-tooltip>
+            </q-icon>
+          </template>
+        </q-input>
+        <q-input
+          v-model="occupancyEndHour"
+          outlined
+          dense
+          hide-bottom-space
+          mask="##"
+          label="Occupancy end hour (excluded)"
+          placeholder="18"
+          :error="!!formErrors.occupancyEndHour"
+          :error-message="formErrors.occupancyEndHour"
+          class="date-input"
+        />
+      </div>
     </div>
 
     <!-- File Upload Header Line -->
@@ -182,6 +219,8 @@ const coolingType = ref<CoolingType>('natural')
 const heatingSeason = ref<HeatingSeason>('mixed')
 const heatingSeasonStart = ref<string>('11/01')
 const heatingSeasonEnd = ref<string>('03/01')
+const occupancyStartHour = ref<string>('')
+const occupancyEndHour = ref<string>('')
 
 const buildingTypeOptions = [
   { label: 'Residential', value: 'residential' },
@@ -204,7 +243,9 @@ const formErrors = reactive({
   coolingType: '',
   heatingSeason: '',
   heatingSeasonStart: '',
-  heatingSeasonEnd: ''
+  heatingSeasonEnd: '',
+  occupancyStartHour: '',
+  occupancyEndHour: ''
 })
 
 // Load default data on mount
@@ -229,6 +270,12 @@ const isValidMonthDay = (value: string): boolean => {
   return day <= (daysInMonth[month - 1] ?? 0)
 }
 
+const isValidHour = (value: string): boolean => {
+  if (!/^\d{1,2}$/.test(value)) return false
+  const hour = Number(value)
+  return !Number.isNaN(hour) && hour >= 0 && hour <= 23
+}
+
 const validateForm = (): boolean => {
   formErrors.buildingType = buildingType.value ? '' : 'Building type is required.'
   formErrors.coolingType = coolingType.value ? '' : 'Cooling/conditionning type is required.'
@@ -246,12 +293,33 @@ const validateForm = (): boolean => {
       : 'Enter a valid month/day (MM/DD).'
   }
 
+  formErrors.occupancyStartHour = ''
+  formErrors.occupancyEndHour = ''
+
+  if (buildingType.value === 'school') {
+    const startFilled = occupancyStartHour.value !== ''
+    const endFilled = occupancyEndHour.value !== ''
+    if (startFilled !== endFilled) {
+      formErrors.occupancyStartHour = 'Provide both occupancy hours or leave both empty.'
+      formErrors.occupancyEndHour = 'Provide both occupancy hours or leave both empty.'
+    } else if (startFilled) {
+      formErrors.occupancyStartHour = isValidHour(occupancyStartHour.value)
+        ? ''
+        : 'Enter a valid hour (0-23).'
+      formErrors.occupancyEndHour = isValidHour(occupancyEndHour.value)
+        ? ''
+        : 'Enter a valid hour (0-23).'
+    }
+  }
+
   return (
     !formErrors.buildingType &&
     !formErrors.coolingType &&
     !formErrors.heatingSeason &&
     !formErrors.heatingSeasonStart &&
-    !formErrors.heatingSeasonEnd
+    !formErrors.heatingSeasonEnd &&
+    !formErrors.occupancyStartHour &&
+    !formErrors.occupancyEndHour
   )
 }
 
@@ -280,6 +348,14 @@ const handleFileChange = async (event: Event) => {
     if (heatingSeason.value === 'mixed') {
       params.append('heating_season_start', heatingSeasonStart.value)
       params.append('heating_season_end', heatingSeasonEnd.value)
+    }
+    if (
+      buildingType.value === 'school' &&
+      occupancyStartHour.value !== '' &&
+      occupancyEndHour.value !== ''
+    ) {
+      params.append('occupancy_start_hour', occupancyStartHour.value)
+      params.append('occupancy_end_hour', occupancyEndHour.value)
     }
 
     const response = await fetch(`${baseUrl}/data/score?${params.toString()}`, {

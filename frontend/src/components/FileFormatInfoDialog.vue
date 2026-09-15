@@ -56,7 +56,7 @@
             unelevated
             no-caps
             color="secondary"
-            label="Download example (with scores)"
+            label="Download residential example (with scores)"
             type="a"
             :href="exampleWithScoresUrl"
             download="atlas_score_example.csv"
@@ -67,7 +67,7 @@
             unelevated
             no-caps
             color="secondary"
-            label="Download example (without scores)"
+            label="Download residential example (without scores)"
             type="a"
             :href="exampleWithoutScoresUrl"
             download="atlas_raw_example.csv"
@@ -245,6 +245,12 @@ const fields = computed<FieldInfo[]>(() => [
     category: 'Lighting',
     patterns: ['light', 'lux', 'illuminance', 'lighting'],
     note: 'For school buildings, these names carry values in lux. Residential buildings must upload percent-of-time values with the light_percent field.'
+  },
+  {
+    key: 'occupancy',
+    category: 'Lighting',
+    patterns: ['occupancy', 'occupied'],
+    note: 'Optional, for school buildings. A number greater than 0 or a boolean true means the space is occupied. When provided, occupied rows decide which light rows are kept. Without occupancy data, light rows are only kept between the occupancy hours (see the context inputs).'
   },
   {
     key: 'sla',

@@ -110,6 +110,10 @@ patterns: dict[Field, list[str]] = {
         "reverberation time",
         "reverberation",
     ],
+    "occupancy": [
+        "occupancy",
+        "occupied",
+    ],
 }
 field_variants: dict[Field, list[str]] = {
     "light_percent": ["light_percent_day", "light_percent_night"],
@@ -188,10 +192,12 @@ def drop_fields_without_thresholds(
     inperso-ieq drops fields without threshold parameters for the context and
     returns an error on an empty frame when every row is dropped. Temperature
     fields have no thresholds themselves: the library turns them into variant
-    fields for the context and drops the outdoor rows itself.
+    fields for the context and drops the outdoor rows itself. Occupancy also
+    has no thresholds: the library consumes occupancy rows to filter the
+    school light scores and never scores them.
     """
     scoreable = _get_scoreable_fields(context.building_type)
-    library_handled = {"temperature", "outdoor_temperature"}
+    library_handled = {"temperature", "outdoor_temperature", "occupancy"}
 
     no_threshold_fields = sorted(set(df["field"]) - scoreable - library_handled)
     if no_threshold_fields:
@@ -201,7 +207,7 @@ def drop_fields_without_thresholds(
         )
         df = df[~df["field"].isin(no_threshold_fields)]
 
-    if set(df["field"]) <= {"outdoor_temperature"}:
+    if set(df["field"]) <= {"outdoor_temperature", "occupancy"}:
         raise HTTPException(
             status_code=400,
             detail=(
@@ -223,6 +229,8 @@ def concat_scores(
     df["field"] = df["field"].apply(lambda x: fields_map[x])
     df["brand"] = df["field"].apply(lambda x: get_brand(x))
     df["device"] = ""
+
+    df["value"] = df["value"].apply(to_number)
 
     df = convert_units(df)
     df = compute_light_percent(df)
@@ -249,6 +257,21 @@ def compute_light_percent(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[~is_day & is_light_percent, "field"] = "light_percent_night"
 
     return df
+
+
+def to_number(value):
+    """Convert values that look like numbers to floats, and keep the other values as is.
+
+    The value column can mix sensor numbers with occupancy values such as
+    "true", "false", or booleans (e.g. from an xlsx upload). Scoring needs
+    numbers, so numeric strings are converted and the other values are kept.
+    """
+    if isinstance(value, bool):
+        return value
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return value
 
 
 def is_percent_of_time(raw_field: str) -> bool:

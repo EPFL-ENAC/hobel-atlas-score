@@ -24,6 +24,8 @@ async def score_file(
     heating_season: Literal["heating", "non-heating", "mixed"] = "mixed",
     heating_season_start: str | None = None,
     heating_season_end: str | None = None,
+    occupancy_start_hour: int | None = None,
+    occupancy_end_hour: int | None = None,
 ) -> Response:
     content = await file.read()
     df = None
@@ -58,12 +60,21 @@ async def score_file(
                     status_code=400,
                     detail="Heating season start and end are required when coverage is 'mixed'.",
                 )
+            if building_type == "school" and (
+                (occupancy_start_hour is None) != (occupancy_end_hour is None)
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Occupancy start and end hours must be provided together.",
+                )
             context = ScoreContext(
                 building_type=building_type,
                 cooling_type=cooling_type,
                 heating_season=heating_season,
                 heating_season_start=heating_season_start,
                 heating_season_end=heating_season_end,
+                occupancy_start_hour=occupancy_start_hour,
+                occupancy_end_hour=occupancy_end_hour,
             )
             df, fallback_note = concat_scores(df, context)
         except ValueError as exc:

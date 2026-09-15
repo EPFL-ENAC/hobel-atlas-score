@@ -95,6 +95,9 @@ from api.services.data import (
         ("Reverberation time (s)", ("reverberation_time", "noise")),
         ("reverberation time", ("reverberation_time", "noise")),
         ("reverberation", ("reverberation_time", "noise")),
+        # occupancy (used to filter school light rows, not scored)
+        ("occupancy", ("occupancy", None)),
+        ("occupied", ("occupancy", None)),
         # boundary: non-alphanumeric delimiters
         ("_co2_", ("co2", "iaq")),
         ("[pm2.5]", ("pm25", "iaq")),
@@ -113,6 +116,19 @@ def test_get_field_name(raw_field_name, expected):
         category = get_category(field)
 
         assert (field, category) == expected
+
+
+def test_to_number():
+    from api.services.data import to_number
+
+    assert to_number(0.0) == 0.0
+    assert to_number("1") == 1.0
+    assert to_number(100) == 100.0
+
+    # Occupancy values that are not numbers are kept for the library truthiness check.
+    assert to_number(True) is True
+    assert to_number("true") == "true"
+    assert to_number("false") == "false"
 
 
 def test_get_category_light():
@@ -186,6 +202,98 @@ def test_concat_scores_school_light():
     assert scores["Illuminance (lux)"] == pytest.approx(60)
     assert categories["co2"] == "Air quality"
     assert categories["Illuminance (lux)"] == "Lighting"
+
+
+def test_concat_scores_school_light_with_occupancy():
+    df = pd.DataFrame(
+        {
+            "time": [
+                "2024-01-10T10:00:00",
+                "2024-01-10T19:00:00",
+                "2024-01-10T21:00:00",
+                "2024-01-10T10:00:00",
+                "2024-01-10T19:00:00",
+            ],
+            "field": ["Illuminance (lux)"] * 3 + ["occupancy"] * 2,
+            "value": [1000.0, 1000.0, 1000.0, 0.0, 1.0],
+            "device": ["", "", "", "", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="mechanical", heating_season="non-heating"
+    )
+
+    df, note = concat_scores(df, context)
+
+    # The occupancy value decides per row: the occupied light row is kept even
+    # outside the occupancy hours (1000 lux scores 100), the others are
+    # dropped. The occupancy rows are not in the result.
+    assert note is None
+    assert set(df["field"]) == {"Illuminance (lux)"}
+    assert df["time"].dt.hour.tolist() == [19]
+    assert df["score"].iloc[0] == pytest.approx(100.0)
+
+
+def test_concat_scores_school_light_without_occupancy():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T19:00:00"],
+            "field": ["Illuminance (lux)", "Illuminance (lux)"],
+            "value": [1000.0, 1000.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="mechanical", heating_season="non-heating"
+    )
+
+    df, note = concat_scores(df, context)
+
+    # Without occupancy data, light rows outside the occupancy hours (8-18)
+    # are dropped.
+    assert df["time"].dt.hour.tolist() == [10]
+
+
+def test_concat_scores_occupancy_only_rejected():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00"],
+            "field": ["occupancy"],
+            "value": [1.0],
+            "device": [""],
+        }
+    )
+    context = ScoreContext(
+        building_type="school", cooling_type="mechanical", heating_season="non-heating"
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        concat_scores(df, context)
+
+    assert exc_info.value.status_code == 400
+
+
+def test_concat_scores_residential_occupancy_ignored():
+    df = pd.DataFrame(
+        {
+            "time": ["2024-01-10T10:00:00", "2024-01-10T10:00:00"],
+            "field": ["light percent", "occupancy"],
+            "value": [60.0, 0.0],
+            "device": ["", ""],
+        }
+    )
+    context = ScoreContext(
+        building_type="residential",
+        cooling_type="mechanical",
+        heating_season="non-heating",
+    )
+
+    df, note = concat_scores(df, context)
+
+    # Residential light scores are percent-of-time values; the occupancy rows
+    # are ignored. A light percent value of 60 scores 100 (day thresholds).
+    assert set(df["field"]) == {"light percent"}
+    assert df["score"].iloc[0] == pytest.approx(100.0)
 
 
 def test_concat_scores_residential_light_percent():

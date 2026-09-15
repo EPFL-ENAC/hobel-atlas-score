@@ -18,4 +18,5 @@ Field = Literal[
     "light",
     "sla",
     "reverberation_time",
+    "occupancy",
 ]
