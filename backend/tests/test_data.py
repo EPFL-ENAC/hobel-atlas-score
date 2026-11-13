@@ -193,13 +193,13 @@ def test_concat_scores_school_light():
     df, note = concat_scores(df, context)
 
     # co2: 500 ppm <= 800 -> 100. light: school lux thresholds are
-    # greater with 1000/750/500, so 800 lux -> 60.
+    # greater with 500/300/200, so 800 lux -> 100.
     assert note is None
     assert set(df["field"]) == {"co2", "Illuminance (lux)"}
     scores = dict(zip(df["field"], df["score"]))
     categories = dict(zip(df["field"], df["category"]))
     assert scores["co2"] == pytest.approx(100)
-    assert scores["Illuminance (lux)"] == pytest.approx(60)
+    assert scores["Illuminance (lux)"] == pytest.approx(100)
     assert categories["co2"] == "Air quality"
     assert categories["Illuminance (lux)"] == "Lighting"
 
