@@ -12,6 +12,9 @@ from api.services.data import concat_scores
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
 
+MAX_UPLOAD_BYTES = 100 * 1024 * 1024
+MAX_ROWS = 2_000_000
+
 
 @router.post(
     "/score",
@@ -27,19 +30,29 @@ async def score_file(
     occupancy_start_hour: int | None = None,
     occupancy_end_hour: int | None = None,
 ) -> Response:
-    content = await file.read()
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                "File is too large. "
+                f"The maximum size is {MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+            ),
+        )
     df = None
 
     if file.filename and file.filename.lower().endswith(".xlsx"):
         try:
-            df = pd.read_excel(io.BytesIO(content))
+            df = pd.read_excel(io.BytesIO(content), nrows=MAX_ROWS + 1)
         except Exception:
             logger.exception("Failed to read uploaded file as xlsx")
             raise HTTPException(status_code=400, detail="Invalid xlsx file.")
     else:
         for sep in [",", ";", " "]:
             try:
-                df = pd.read_csv(io.StringIO(content.decode("utf-8")), sep=sep)
+                df = pd.read_csv(
+                    io.StringIO(content.decode("utf-8")), sep=sep, nrows=MAX_ROWS + 1
+                )
                 break
             except Exception:
                 continue
@@ -50,6 +63,12 @@ async def score_file(
                 status_code=400,
                 detail="Invalid file. Supported formats: CSV (comma, semicolon, or space-separated), xlsx.",
             )
+
+    if len(df) > MAX_ROWS:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File has too many rows. The maximum is {MAX_ROWS}.",
+        )
 
     if "score" not in df.columns:
         try:

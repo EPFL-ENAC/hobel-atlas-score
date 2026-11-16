@@ -194,15 +194,16 @@ const createCircularPlot = () => {
 
       tooltip
         .style('opacity', 1)
-        .html(
-          `
-          <strong>${d.data.category}</strong><br/>
-          Average: ${d.data.average}<br/>
-          Band: ${minRange}%-${maxRange}% (${d.data.band + 1}/${numBands})
-        `
-        )
         .style('left', event.pageX + 10 + 'px')
         .style('top', event.pageY - 10 + 'px')
+
+      tooltip.selectAll('*').remove()
+      tooltip
+        .append('div')
+        .append('strong')
+        .text(String(d.data.category ?? ''))
+      tooltip.append('div').text(`Average: ${d.data.average}`)
+      tooltip.append('div').text(`Band: ${minRange}%-${maxRange}% (${d.data.band + 1}/${numBands})`)
     })
     .on('mouseout', function () {
       d3.select(this).transition().duration(200).attr('transform', 'scale(1)')

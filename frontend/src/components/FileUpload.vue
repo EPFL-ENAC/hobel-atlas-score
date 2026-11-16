@@ -323,6 +323,16 @@ const validateForm = (): boolean => {
   )
 }
 
+const getErrorMessage = async (response: Response): Promise<string> => {
+  const fallback = `Server error: ${response.status}`
+  try {
+    const body = (await response.json()) as { detail?: unknown }
+    return typeof body.detail === 'string' ? body.detail : fallback
+  } catch {
+    return fallback
+  }
+}
+
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
@@ -364,8 +374,7 @@ const handleFileChange = async (event: Event) => {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || `Server error: ${response.status}`)
+      throw new Error(await getErrorMessage(response))
     }
 
     const fallbackNote = response.headers.get('X-ATLAS-Fallback-Note')

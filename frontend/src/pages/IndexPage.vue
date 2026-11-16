@@ -183,10 +183,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import HorizonPlot from 'components/visualizations/HorizonPlot.vue'
-import CircularCategoryPlot from 'components/visualizations/CircularCategoryPlot.vue'
-import FileUpload from 'components/FileUpload.vue'
-import ColorSchemePreview from 'components/ColorSchemePreview.vue'
+import HorizonPlot from '../components/visualizations/HorizonPlot.vue'
+import CircularCategoryPlot from '../components/visualizations/CircularCategoryPlot.vue'
+import FileUpload from '../components/FileUpload.vue'
+import ColorSchemePreview from '../components/ColorSchemePreview.vue'
 import type { EnvironmentalData } from '../composables/useHorizonChart'
 import { useColorSchemes, availableSchemes } from '../composables/useColorSchemes'
 
